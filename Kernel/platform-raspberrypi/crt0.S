@@ -34,25 +34,6 @@ proc reset
 	ldr sp, =kernelstack_top
 	b platform_init
 
-proc enable_mmu
-	mov r2, #0
-	mcr p15, 0, r2, c7, c7, 0          // invalidate caches
-    mcr p15, 0, r2, c8, c7, 0          // invalidate TLB
-    mcr p15, 0, r2, c7, c10, 4         // DSB ??
-
-	mvn r2, #0
-	bic r2, #0xc
-	mcr p15,0,r2,c3,c0,0 // domain
-
-    mcr p15,0,r0,c2,c0,0 // tlb base
-    mcr p15,0,r0,c2,c0,1 // tlb base
-
-    mrc p15,0,r2,c1,c0,0
-    orr r2,r2,r1
-    mcr p15,0,r2,c1,c0,0
-
-	bx lr
-
 proc busy_wait
 	subs r0, r0, #1
 	bne busy_wait

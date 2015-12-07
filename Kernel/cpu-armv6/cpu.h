@@ -60,8 +60,14 @@ typedef union {            /* this structure is endian dependent */
 
 #define __fastcall__
 
-static inline void tlb_flush(void* address)
-{
-	asm volatile("mcr p15, 0, %[data], c8, c7, 1" : : [data] "r" (address));
-}
+#define mcr(proc, op1, crn, crm, op2, value) \
+	asm volatile("mcr p" #proc "," #op1 ", %0, c" #crn ",c" #crm "," #op2 \
+	: : "r" (value))
+	
+#define mrc(proc, op1, crn, crm, op2) \
+	({ uint32_t result; \
+	   asm volatile("mrc p" #proc "," #op1 ", %0, c" #crn ",c" #crm "," #op2 \
+	   : "=r" (result)); \
+	   result; \
+	})
 
