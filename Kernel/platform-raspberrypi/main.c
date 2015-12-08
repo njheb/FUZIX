@@ -1,5 +1,6 @@
 #include <kernel.h>
 #include <printf.h>
+#include <kdata.h>
 #include "raspberrypi.h"
 #include "externs.h"
 
@@ -127,6 +128,11 @@ void platform_init(uint8_t* atags)
 	/* Wipe BSS. */
 
 	memset(&__bssstart, 0, &__bssend - &__bssstart);
+
+	/* Detect how much memory we have. */
+
+	ramsize = 1024 * 1024*1024;
+	procmem = 1023 * 1024*1024;
 
 	/* Initialise system peripherals. */
 

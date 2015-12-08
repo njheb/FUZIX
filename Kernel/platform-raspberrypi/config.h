@@ -8,7 +8,7 @@
 #undef CONFIG_PROFIL
 /* Multiple processes in memory at once */
 #undef CONFIG_MULTI
-#define PTABSIZE 200
+#define PTABSIZE 100 /* Actually we can fit 1023 */
 #define MAX_SWAPS PTABSIZE
 
 #define CONFIG_USERMEM_DIRECT
@@ -23,8 +23,7 @@
 #define CONFIG_BANKS 1
 /* Banked Kernel: need to fix GCC first */
 #undef CONFIG_BANKED
-/* And swapping */
-#define SWAPDEV 0x0002 /* hda2 */
+#undef SWAPDEV
 
 /* Video terminal, not a serial tty */
 #undef CONFIG_VT
@@ -44,6 +43,7 @@ extern uint8_t* __progtop;
 #define PROGBASE    ((uaddr_t)&__progbase)
 #define PROGLOAD    PROGBASE /* also data base */
 #define PROGTOP     ((uaddr_t)&__progtop)  /* Top of program */
+#define PROC_SIZE   ((PROGTOP - PROGBASE) / 1024)
 
 #define BOOT_TTY (512 + 1)   /* Set this to default device for stdio, stderr */
                           /* In this case, the default is the first TTY device */

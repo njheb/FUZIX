@@ -262,8 +262,6 @@ void fuzix_main(void)
 			"Copyright (c) 2013-2015 Will Sowerbutts <will@sowerbutts.com>\n"
 			"Copyright (c) 2014-2015 Alan Cox <alan@etchedpixels.co.uk>\nDevboot\n",
 			uname_str);
-#if 0
-
 #ifndef SWAPDEV
 #ifdef PROC_SIZE
 	maxproc = procmem / PROC_SIZE;
@@ -279,12 +277,14 @@ void fuzix_main(void)
 #else
 	maxproc = PTABSIZE;
 #endif
+
 	/* Used as a stop marker to make compares fast on process
 	   scheduling and the like */
 	ptab_end = &ptab[maxproc];
 
 	/* Parameters message */
 	kprintf("%dkB total RAM, %dkB available to processes (%d processes max)\n", ramsize, procmem, maxproc);
+#if 0
 	bufinit();
 	fstabinit();
 	pagemap_init();
