@@ -188,7 +188,7 @@ arg_t _execve(void)
 	 * so we can start writing over the old program
 	 */
 	
-	progbase = pagemap_base();
+	progbase = (void*)PROGLOAD;
 	top = progbase + bin_size;
 
 	uput(buf, (uint8_t *)progbase, 512);	/* Move 1st Block to user bank */
