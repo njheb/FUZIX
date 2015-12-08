@@ -60,6 +60,11 @@ typedef union {            /* this structure is endian dependent */
 /* Sane behaviour for unused parameters */
 #define used(x)
 
+#define cpu_to_le16(x)	(x)
+#define le16_to_cpu(x)	(x)
+#define cpu_to_le32(x)  (x)
+#define le32_to_cpu(x)  (x)
+
 #define __fastcall__
 
 #define mcr(proc, op1, crn, crm, op2, value) \

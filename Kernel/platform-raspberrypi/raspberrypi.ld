@@ -3,6 +3,7 @@ ENTRY(_start)
 PROVIDE (tlbtable        = 0);
 PROVIDE (GPIO            = 0x3f200000);
 PROVIDE (UART0           = 0x3f201000);
+PROVIDE (ALTMMC          = 0x3f202000);
 
 PROVIDE (__kerneltop     = 0x00100000);
 PROVIDE (__progbase      = 0x80000000);

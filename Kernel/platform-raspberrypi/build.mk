@@ -11,22 +11,27 @@ $(kernelversion.result):
 
 kernel.srcs = \
 	../bankfixed.c \
+	../dev/blkdev.c \
+	../dev/devsd.c \
+	../dev/devsd_discard.c \
+	../dev/mbr.c \
 	../devio.c \
 	../devsys.c \
 	../filesys.c \
+	../inode.c \
 	../kdata.c \
+	../malloc.c \
 	../mm.c \
 	../process.c \
 	../start.c \
+	../syscall_exec32.c \
+	../syscall_fs.c \
 	../timer.c \
 	../tty.c \
 	../usermem.c \
-	../inode.c \
-	../syscall_fs.c \
-	../syscall_exec32.c \
-	../malloc.c \
 	crt0.S \
 	devices.c \
+	devsd_altmmc.c \
 	devtty.c \
 	libc.c \
 	main.c \
