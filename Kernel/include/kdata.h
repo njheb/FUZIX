@@ -13,8 +13,8 @@ extern struct u_data udata;
 #endif
 
 extern uint16_t maxproc;   /* Actual max number of processes */
-extern uint16_t ramsize;
-extern uint16_t procmem;
+extern uaddr_t ramsize;
+extern uaddr_t procmem;
 extern uint16_t nproc;	   /* Current number of processes */
 extern uint8_t nready;	   /* Number of ready processes */
 
