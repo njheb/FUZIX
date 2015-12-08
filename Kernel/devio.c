@@ -487,30 +487,37 @@ static void putdigit0(unsigned char c)
 	kputchar("0123456789ABCDEF"[c & 15]);
 }
 
-static void putdigit(unsigned char c, unsigned char *flag)
-{
-	if (c || *flag) {
-		*flag |= c;
-		putdigit0(c);
-	}
-}
-
 void kputhex(unsigned int v)
 {
-	putdigit0(v >> 12);
-	putdigit0(v >> 8);
-	putdigit0(v >> 4);
-	putdigit0(v);
+	int i;
+	for (i = (sizeof(v)*8 - 4); i>=0; i-=4)
+		putdigit0(v >> i);
 }
 
 void kputunum(unsigned int v)
 {
-	unsigned char n = 0;
-	putdigit((v / 10000) % 10, &n);
-	putdigit((v / 1000) % 10, &n);
-	putdigit((v / 100) % 10, &n);
-	putdigit((v / 10) % 10, &n);
-	putdigit0(v % 10);
+	/* The following line actually works to produce an appropriately-sized
+	 * buffer. */
+	static char buf[sizeof(v)*5 + 1];
+	char* p = buf;
+
+	if (v == 0)
+		*p++ = 0;
+	else
+	{
+		while (v != 0)
+		{
+			*p++ = v % 10;
+			v /= 10;
+		}
+	}
+
+	do
+	{
+		p--;
+		putdigit0(*p);
+	}
+	while (p != buf);
 }
 
 void kputnum(int v)
