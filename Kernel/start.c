@@ -284,7 +284,6 @@ void fuzix_main(void)
 
 	/* Parameters message */
 	kprintf("%dkB total RAM, %dkB available to processes (%d processes max)\n", ramsize, procmem, maxproc);
-#if 0
 	bufinit();
 	fstabinit();
 	pagemap_init();
@@ -296,6 +295,7 @@ void fuzix_main(void)
 	kputs("Enabling interrupts ... ");
 	ei();
 	kputs("ok.\n");
+#if 0
 
 	/* initialise hardware devices */
 	device_init();

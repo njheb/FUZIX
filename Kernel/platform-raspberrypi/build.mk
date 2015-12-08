@@ -18,12 +18,14 @@ kernel.srcs = \
 	../start.c \
 	../tty.c \
 	../usermem.c \
+	../timer.c \
 	crt0.S \
 	devices.c \
 	devtty.c \
 	libc.c \
 	main.c \
 	tricks.s \
+	../bankfixed.c \
 	$(kernelversion.result)
 
 kernel.includes += \

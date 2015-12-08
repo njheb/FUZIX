@@ -17,9 +17,7 @@
 #define BANK_KERNEL /* */
 #define BANK_PROCESS /* */
 
-/* Pure swap */
-#define CONFIG_BANKED_FIXED
-
+#define CONFIG_BANK_FIXED
 #define CONFIG_BANKS 1
 /* Banked Kernel: need to fix GCC first */
 #undef CONFIG_BANKED
@@ -44,6 +42,10 @@ extern uint8_t* __progtop;
 #define PROGLOAD    PROGBASE /* also data base */
 #define PROGTOP     ((uaddr_t)&__progtop)  /* Top of program */
 #define PROC_SIZE   ((PROGTOP - PROGBASE) / 1024)
+
+#define MAP_BASE    PROGBASE
+#define MAP_SIZE    (PROGTOP - PROGBASE)
+#define MAX_MAPS    PTABSIZE
 
 #define BOOT_TTY (512 + 1)   /* Set this to default device for stdio, stderr */
                           /* In this case, the default is the first TTY device */

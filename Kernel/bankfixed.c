@@ -69,14 +69,14 @@ int pagemap_alloc(ptptr p)
 }
 
 /* Realloc is trivial - we can't do anything useful */
-int pagemap_realloc(uint16_t size)
+int pagemap_realloc(uaddr_t size)
 {
 	if (size > MAP_SIZE)
 		return ENOMEM;
 	return 0;
 }
 
-uint16_t pagemap_mem_used(void)
+uaddr_t pagemap_mem_used(void)
 {
 	return (pfmax - pfptr) * (MAP_SIZE >> 10);
 }

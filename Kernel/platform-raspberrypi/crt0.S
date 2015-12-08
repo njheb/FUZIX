@@ -32,17 +32,35 @@ stack kernelstack, 1024
 _start:
 	/* Exception table. */
 
-	b reset /* 0x00: Reset */
-	b reset /* 0x04: Undefined instruction */
-	b reset /* 0x08: SWI */
-	b reset /* 0x0c: Prefetch abort */
-	b reset /* 0x10: Data abort */
-	b reset /* 0x14: Hypervisor trap (?) */
-	b reset /* 0x18: IRQ interrupt */
-	b reset /* 0x1c: FIQ interrupt */
+	b reset       /* 0x00: Reset */
+	b und_handler /* 0x04: Undefined instruction */
+	b svc_handler /* 0x08: SWI */
+	b abt_handler /* 0x0c: Prefetch abort */
+	b abt_handler /* 0x10: Data abort */
+	b reset       /* 0x14: Hypervisor trap (?) */
+	b irq_handler /* 0x18: IRQ interrupt */
+	b fiq_handler /* 0x1c: FIQ interrupt */
 
 .globl trap_monitor
 trap_monitor = reset
+
+proc svc_handler
+	b svc_handler
+
+proc abt_handler
+	b abt_handler
+
+proc irq_handler
+	b irq_handler
+
+proc fiq_handler
+	b fiq_handler
+
+proc und_handler
+	b und_handler
+
+proc sys_handler
+	b sys_handler
 
 proc reset
 	/* On entry:
@@ -114,3 +132,10 @@ proc irqrestore
 	msr CPSR, r1
 	bx lr
 
+proc ei
+	/* Enable interrupts unconditionally. */
+	mrs r0, CPSR
+	bic r0, r0, #INTERRUPT_FLAGS
+	msr CPSR, r0
+	bx lr
+	

@@ -114,6 +114,14 @@ void pagemap_init(void)
 		pagemap_add(i);
 }
 
+void map_init(void)
+{
+}
+
+void program_vectors(uint16_t* pageptr)
+{
+}
+
 void platform_init(uint8_t* atags)
 {
 	/* Create a 1:1 TLB table and turn it on, so that our peripherals end up
@@ -122,7 +130,7 @@ void platform_init(uint8_t* atags)
 	memset((void*) tlbtable, 0, sizeof(tlbtable));
 	set_tlb_entry(0x00000000, 0x00000000, CACHED|BUFFERED); /* Kernel 1:1 mapping */
 	set_tlb_entry(0x3f200000, 0x3f200000, 0);               /* I/O ports 1:1 mapping */
-	set_tlb_entry(0x80000000, 0x00200000, CACHED|BUFFERED); /* Startup process */
+	set_tlb_entry(0x80000000, 0x00100000, CACHED|BUFFERED); /* Startup process */
 	enable_mmu();
 
 	/* Wipe BSS. */
@@ -131,8 +139,8 @@ void platform_init(uint8_t* atags)
 
 	/* Detect how much memory we have. */
 
-	ramsize = 1024 * 1024*1024;
-	procmem = 1023 * 1024*1024;
+	ramsize = 1024 * 1024;
+	procmem = 1023 * 1024;
 
 	/* Initialise system peripherals. */
 
@@ -143,4 +151,27 @@ void platform_init(uint8_t* atags)
 
 	fuzix_main();
 }
+
+/* Uget/Uput 32bit */
+
+uint32_t ugetl(void *uaddr, int *err)
+{
+        if (!valaddr(uaddr, 4)) {
+                if (err)
+                        *err = -1;
+                return -1;
+        }
+        if (err)
+                *err = 0;
+        return *(uint32_t *)uaddr;
+
+}
+
+int uputl(uint32_t val, void *uaddr)
+{
+        if (!valaddr(uaddr, 4))
+                return -1;
+        return *(uint32_t *)uaddr;
+}
+
 
