@@ -37,6 +37,8 @@ extern volatile uint32_t GPCLR0;
 extern volatile uint32_t GPPUD;
 extern volatile uint32_t GPPUDCLK0;
 
+uaddr_t ramtop;
+
 void set_tlb_entry(uint32_t virtual, uint32_t physical, uint32_t flags)
 {
 	int page = virtual / MEGABYTE;
@@ -100,6 +102,17 @@ static inline void tlb_flush(void* address)
 	mcr(15, 0, 8, 7, 1, address);
 }
 
+void pagemap_init(void)
+{
+	/* We use megabyte pages --- gross overkill for Fuzix, but it's easy.
+	 * The kernel occupies page 0 and is mapped at 0. User processes occupy
+	 * all the others, and each one is mapped at 0x80000000. */
+
+	int i;
+	for (i=1; i<PTABSIZE; i++)
+		pagemap_add(i);
+}
+
 void platform_init(uint8_t* atags)
 {
 	/* Create a 1:1 TLB table and turn it on, so that our peripherals end up
@@ -108,6 +121,7 @@ void platform_init(uint8_t* atags)
 	memset((void*) tlbtable, 0, sizeof(tlbtable));
 	set_tlb_entry(0x00000000, 0x00000000, CACHED|BUFFERED); /* Kernel 1:1 mapping */
 	set_tlb_entry(0x3f200000, 0x3f200000, 0);               /* I/O ports 1:1 mapping */
+	set_tlb_entry(0x80000000, 0x00200000, CACHED|BUFFERED); /* Startup process */
 	enable_mmu();
 
 	/* Wipe BSS. */
@@ -119,13 +133,8 @@ void platform_init(uint8_t* atags)
 	jtag_init();
 	tty_rawinit();
 
-	kprintf("Hello, world!\n");
-	for (;;);
-}
+	/* And go! */
 
-void panic(char* message)
-{
-	kprintf("panic: %s\n", message);
-	for (;;);
+	fuzix_main();
 }
 

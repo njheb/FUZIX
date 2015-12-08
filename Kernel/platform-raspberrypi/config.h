@@ -8,7 +8,7 @@
 #undef CONFIG_PROFIL
 /* Multiple processes in memory at once */
 #undef CONFIG_MULTI
-#define PTABSIZE 100
+#define PTABSIZE 200
 #define MAX_SWAPS PTABSIZE
 
 #define CONFIG_USERMEM_DIRECT
@@ -37,9 +37,13 @@ extern int __swap_top;
 extern int __swap_size_blocks;
 
 #define TICKSPERSEC 64   /* Ticks per second */
-#define PROGBASE    ((uaddr_t)0x80000000)
+
+extern uint8_t* __progbase;
+extern uint8_t* __progtop;
+
+#define PROGBASE    ((uaddr_t)&__progbase)
 #define PROGLOAD    PROGBASE /* also data base */
-#define PROGTOP     ((uaddr_t)0x80100000)  /* Top of program */
+#define PROGTOP     ((uaddr_t)&__progtop)  /* Top of program */
 
 #define BOOT_TTY (512 + 1)   /* Set this to default device for stdio, stderr */
                           /* In this case, the default is the first TTY device */

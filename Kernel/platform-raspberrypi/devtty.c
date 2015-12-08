@@ -8,12 +8,12 @@
 #include "raspberrypi.h"
 #include "externs.h"
 
-#if 0
+static char ttybuf[TTYSIZ];
+
 struct s_queue ttyinq[NUM_DEV_TTY+1] = { /* ttyinq[0] is never used */
-	{ 0,         0,         0,         0,      0, 0        },
-	{ ttybuf_hi, ttybuf_hi, ttybuf_hi, TTYSIZ, 0, TTYSIZ/2 },
+	{ 0,      0,      0,      0,      0, 0        },
+	{ ttybuf, ttybuf, ttybuf, TTYSIZ, 0, TTYSIZ/2 },
 };
-#endif
 
 /* Output for the system console (kprintf etc) */
 void kputchar(char c)

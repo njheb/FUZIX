@@ -12,6 +12,8 @@ typedef uint32_t uptr_t;		/* User pointer equivalent */
 
 #define uputp  uputl			/* Copy user pointer type */
 #define ugetp  ugetl			/* between user and kernel */
+extern uint32_t ugetl(void *uaddr, int *err);
+extern int uputl(uint32_t val, void *uaddr);
 
 extern void ei(void);
 extern irqflags_t di(void);

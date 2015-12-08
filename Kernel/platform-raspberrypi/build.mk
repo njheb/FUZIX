@@ -10,11 +10,20 @@ $(kernelversion.result):
 	$(hide) mv $(dir $@)/version.c $@
 
 kernel.srcs = \
+	../devio.c \
+	../devsys.c \
+	../kdata.c \
+	../mm.c \
+	../process.c \
+	../start.c \
+	../tty.c \
+	../usermem.c \
 	crt0.S \
+	devices.c \
+	devtty.c \
 	libc.c \
 	main.c \
-	devtty.c \
-	../devio.c \
+	tricks.s \
 	$(kernelversion.result)
 
 kernel.includes += \

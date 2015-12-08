@@ -262,6 +262,7 @@ void fuzix_main(void)
 			"Copyright (c) 2013-2015 Will Sowerbutts <will@sowerbutts.com>\n"
 			"Copyright (c) 2014-2015 Alan Cox <alan@etchedpixels.co.uk>\nDevboot\n",
 			uname_str);
+#if 0
 
 #ifndef SWAPDEV
 #ifdef PROC_SIZE
@@ -315,5 +316,6 @@ void fuzix_main(void)
 	udata.u_root = i_ref(root);
 	rdtime32(&udata.u_time);
 	exec_or_die();
+#endif
 }
 
