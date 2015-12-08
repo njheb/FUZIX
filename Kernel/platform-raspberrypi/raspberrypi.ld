@@ -4,6 +4,7 @@ PROVIDE (tlbtable        = 0);
 PROVIDE (GPIO            = 0x3f200000);
 PROVIDE (UART0           = 0x3f201000);
 
+PROVIDE (__kerneltop     = 0x00100000);
 PROVIDE (__progbase      = 0x80000000);
 PROVIDE (__progtop       = 0x80100000);
 PROVIDE (udata           = __progbase);

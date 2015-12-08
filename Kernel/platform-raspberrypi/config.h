@@ -1,5 +1,8 @@
 #include <stdint.h>
 
+/* Our bigness makes Fuzix uncomfortable. */
+#define CONFIG_32BIT
+
 /* Enable to make ^Z dump the inode table for debug */
 #undef CONFIG_IDUMP
 /* Enable to make ^A drop back into the monitor */

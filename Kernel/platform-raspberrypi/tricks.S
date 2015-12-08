@@ -3,3 +3,6 @@
 proc switchout
 	b switchout
 
+proc doexec
+	b doexec
+

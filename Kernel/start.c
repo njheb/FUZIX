@@ -235,7 +235,7 @@ uint16_t get_root_dev(void)
 }
 #else
 
-inline uint16_t get_root_dev(void)
+static inline uint16_t get_root_dev(void)
 {
 	return BOOTDEVICE;
 }
@@ -295,7 +295,6 @@ void fuzix_main(void)
 	kputs("Enabling interrupts ... ");
 	ei();
 	kputs("ok.\n");
-#if 0
 
 	/* initialise hardware devices */
 	device_init();
@@ -316,6 +315,5 @@ void fuzix_main(void)
 	udata.u_root = i_ref(root);
 	rdtime32(&udata.u_time);
 	exec_or_die();
-#endif
 }
 

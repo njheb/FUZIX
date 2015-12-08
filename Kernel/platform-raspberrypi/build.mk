@@ -10,22 +10,27 @@ $(kernelversion.result):
 	$(hide) mv $(dir $@)/version.c $@
 
 kernel.srcs = \
+	../bankfixed.c \
 	../devio.c \
 	../devsys.c \
+	../filesys.c \
 	../kdata.c \
 	../mm.c \
 	../process.c \
 	../start.c \
+	../timer.c \
 	../tty.c \
 	../usermem.c \
-	../timer.c \
+	../inode.c \
+	../syscall_fs.c \
+	../syscall_exec32.c \
+	../malloc.c \
 	crt0.S \
 	devices.c \
 	devtty.c \
 	libc.c \
 	main.c \
 	tricks.s \
-	../bankfixed.c \
 	$(kernelversion.result)
 
 kernel.includes += \
@@ -33,6 +38,7 @@ kernel.includes += \
 kernel.cflags += \
 	-Wno-int-to-pointer-cast \
 	-Wno-pointer-to-int-cast \
+	-Wno-parentheses \
 	-fno-inline \
 	-fno-common \
 	-g -gdwarf-2 \

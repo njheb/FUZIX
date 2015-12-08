@@ -6,6 +6,7 @@
 
 extern uint8_t __bssstart;
 extern uint8_t __bssend;
+extern uint8_t __kerneltop;
 
 #define MEGABYTE (1024*1024)
 extern volatile uint32_t tlbtable[4096];
@@ -122,6 +123,10 @@ void program_vectors(uint16_t* pageptr)
 {
 }
 
+void platform_discard(void)
+{
+}
+
 void platform_init(uint8_t* atags)
 {
 	/* Create a 1:1 TLB table and turn it on, so that our peripherals end up
@@ -141,6 +146,7 @@ void platform_init(uint8_t* atags)
 
 	ramsize = 1024 * 1024;
 	procmem = 1023 * 1024;
+	kmemaddblk(&__bssend, &__kerneltop - &__bssend);
 
 	/* Initialise system peripherals. */
 
