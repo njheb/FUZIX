@@ -8,7 +8,7 @@
 #include "raspberrypi.h"
 #include "externs.h"
 
-static char ttybuf[TTYSIZ];
+static uint8_t ttybuf[TTYSIZ];
 
 struct s_queue ttyinq[NUM_DEV_TTY+1] = { /* ttyinq[0] is never used */
 	{ 0,      0,      0,      0,      0, 0        },
