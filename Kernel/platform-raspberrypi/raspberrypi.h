@@ -3,6 +3,142 @@
 
 extern struct
 {
+	volatile uint32_t EMMC_ARG2;
+	volatile uint32_t EMMC_BLKSIZECNT;
+	volatile uint32_t EMMC_ARG1;
+	volatile uint32_t EMMC_CMDTM;
+	volatile uint32_t EMMC_RESP0;
+	volatile uint32_t EMMC_RESP1;
+	volatile uint32_t EMMC_RESP2;
+	volatile uint32_t EMMC_RESP3;
+	volatile uint32_t EMMC_DATA;
+	volatile uint32_t EMMC_STATUS;
+	volatile uint32_t EMMC_CONTROL0;
+	volatile uint32_t EMMC_CONTROL1;
+	volatile uint32_t EMMC_INTERRUPT;
+	volatile uint32_t EMMC_IRPT_MASK;
+	volatile uint32_t EMMC_IRPT_EN;
+	volatile uint32_t EMMC_CONTROL2;
+	volatile uint32_t EMMC_HOST_CAPS;
+	uint32_t padding1[3];
+	volatile uint32_t EMMC_BOOT_TIMEOUT;
+	uint32_t padding2[4];
+	volatile uint32_t EMMC_EXRDFIFO_EN;
+	uint32_t padding3[28];
+	volatile uint32_t EMMC_SPI_INT_SPT;
+	uint32_t padding4[2];
+	volatile uint32_t EMMC_SLOTISR_VER;
+}
+EMMC;
+
+enum
+{
+	/* EMMC command flags */
+
+	CMD_TYPE_NORMAL  = 0x00000000,
+	CMD_TYPE_SUSPEND = 0x00400000,
+	CMD_TYPE_RESUME  = 0x00800000,
+	CMD_TYPE_ABORT   = 0x00c00000,
+	CMD_IS_DATA      = 0x00200000,
+	CMD_IXCHK_EN     = 0x00100000,
+	CMD_CRCCHK_EN    = 0x00080000,
+	CMD_RSPNS_NO     = 0x00000000,
+	CMD_RSPNS_136    = 0x00010000,
+	CMD_RSPNS_48     = 0x00020000,
+	CMD_RSPNS_48B    = 0x00030000,
+	TM_MULTI_BLOCK   = 0x00000020,
+	TM_DAT_DIR_HC    = 0x00000000,
+	TM_DAT_DIR_CH    = 0x00000010,
+	TM_AUTO_CMD23    = 0x00000008,
+	TM_AUTO_CMD12    = 0x00000004,
+	TM_BLKCNT_EN     = 0x00000002,
+	TM_MULTI_DATA    = (CMD_IS_DATA|TM_MULTI_BLOCK|TM_BLKCNT_EN),
+
+	/* INTERRUPT register settings */
+
+	INT_AUTO_ERROR   = 0x01000000,
+	INT_DATA_END_ERR = 0x00400000,
+	INT_DATA_CRC_ERR = 0x00200000,
+	INT_DATA_TIMEOUT = 0x00100000,
+	INT_INDEX_ERROR  = 0x00080000,
+	INT_END_ERROR    = 0x00040000,
+	INT_CRC_ERROR    = 0x00020000,
+	INT_CMD_TIMEOUT  = 0x00010000,
+	INT_ERR          = 0x00008000,
+	INT_ENDBOOT      = 0x00004000,
+	INT_BOOTACK      = 0x00002000,
+	INT_RETUNE       = 0x00001000,
+	INT_CARD         = 0x00000100,
+	INT_READ_RDY     = 0x00000020,
+	INT_WRITE_RDY    = 0x00000010,
+	INT_BLOCK_GAP    = 0x00000004,
+	INT_DATA_DONE    = 0x00000002,
+	INT_CMD_DONE     = 0x00000001,
+	INT_ERROR_MASK   = (INT_CRC_ERROR|INT_END_ERROR|INT_INDEX_ERROR|
+						INT_DATA_TIMEOUT|INT_DATA_CRC_ERR|INT_DATA_END_ERR|
+						INT_ERR|INT_AUTO_ERROR),
+	INT_ALL_MASK     = (INT_CMD_DONE|INT_DATA_DONE|INT_READ_RDY|INT_WRITE_RDY|
+						INT_ERROR_MASK),
+
+	/* CONTROL register settings */
+
+	C0_SPI_MODE_EN   = 0x00100000,
+	C0_HCTL_HS_EN    = 0x00000004,
+	C0_HCTL_DWITDH   = 0x00000002,
+
+	C1_SRST_DATA     = 0x04000000,
+	C1_SRST_CMD      = 0x02000000,
+	C1_SRST_HC       = 0x01000000,
+	C1_TOUNIT_DIS    = 0x000f0000,
+	C1_TOUNIT_MAX    = 0x000e0000,
+	C1_CLK_GENSEL    = 0x00000020,
+	C1_CLK_EN        = 0x00000004,
+	C1_CLK_STABLE    = 0x00000002,
+	C1_CLK_INTLEN    = 0x00000001,
+
+	FREQ_SETUP       =     400000,  /* 400 Khz */
+	FREQ_NORMAL      =   25000000,  /* 25 Mhz */
+
+	/* CONTROL2 values */
+
+	C2_VDD_18        = 0x00080000,
+	C2_UHSMODE       = 0x00070000,
+	C2_UHS_SDR12     = 0x00000000,
+	C2_UHS_SDR25     = 0x00010000,
+	C2_UHS_SDR50     = 0x00020000,
+	C2_UHS_SDR104    = 0x00030000,
+	C2_UHS_DDR50     = 0x00040000,
+
+	/* SLOTISR_VER values */
+
+	HOST_SPEC_NUM              = 0x00ff0000,
+	HOST_SPEC_NUM_SHIFT        = 16,
+	HOST_SPEC_V3               = 2,
+	HOST_SPEC_V2               = 1,
+	HOST_SPEC_V1               = 0,
+
+	/* STATUS register settings */
+
+	SR_DAT_LEVEL1        = 0x1e000000,
+	SR_CMD_LEVEL         = 0x01000000,
+	SR_DAT_LEVEL0        = 0x00f00000,
+	SR_DAT3              = 0x00800000,
+	SR_DAT2              = 0x00400000,
+	SR_DAT1              = 0x00200000,
+	SR_DAT0              = 0x00100000,
+	SR_WRITE_PROT        = 0x00080000,  /* From SDHC spec v2, BCM says reserved */
+	SR_READ_AVAILABLE    = 0x00000800,  /* ???? undocumented */
+	SR_WRITE_AVAILABLE   = 0x00000400,  /* ???? undocumented */
+	SR_READ_TRANSFER     = 0x00000200,
+	SR_WRITE_TRANSFER    = 0x00000100,
+	SR_DAT_ACTIVE        = 0x00000004,
+	SR_DAT_INHIBIT       = 0x00000002,
+	SR_CMD_INHIBIT       = 0x00000001,
+
+};
+
+extern struct
+{
 	volatile uint32_t CMD;     /* 00 */
 	volatile uint32_t ARG;     /* 04 */
 	volatile uint32_t TIMEOUT; /* 08 */
