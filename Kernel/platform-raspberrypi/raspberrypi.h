@@ -290,6 +290,10 @@ enum
 };
 
 extern void gpio_set_pin_func(int pin, int func, int mode);
+extern void gpio_set_output_pin(int pin, bool value);
+extern void led_init(void);
+extern void led_set(bool value);
+extern void led_halt_and_blink(int count);
 extern void mbox_write(int channel, uint32_t value);
 extern uint32_t mbox_read(int channel);
 

@@ -47,6 +47,8 @@ elfkernel.cflags += \
 	-Wno-parentheses \
 	-fno-inline \
 	-fno-common \
+	-mno-unaligned-access \
+	-std=gnu99 \
 	-g -gdwarf-2 \
 
 elfkernel.asflags += \

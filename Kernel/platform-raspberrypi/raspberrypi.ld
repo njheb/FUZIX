@@ -12,6 +12,7 @@ PROVIDE (__progtop       = 0x80100000);
 PROVIDE (udata           = __progbase);
 
 MEMORY {
+	LOWRAM : ORIGIN = 0x0000, LENGTH = 0x8000
 	KERNELRAM : ORIGIN = 0x8000, LENGTH = (1024*1024) - 0x8000
 }
 
@@ -22,7 +23,7 @@ SECTIONS {
 
 	.vectors 0 : {
 		*(.vectors)
-	} AT>KERNELRAM
+	} >LOWRAM AT>KERNELRAM
 	PROVIDE(__vectorsstart = LOADADDR(.vectors));
 	PROVIDE(__vectorsend = __vectorsstart + SIZEOF(.vectors));
 
@@ -34,6 +35,10 @@ SECTIONS {
 		*(.rodata*)
 		*(.data*)
 	} >KERNELRAM
+
+	.stacks (NOLOAD) : {
+		*(.stack*)
+	} >LOWRAM
 
     .bss (NOLOAD) : ALIGN(64*1024) {
 		PROVIDE (__bssstart = .);

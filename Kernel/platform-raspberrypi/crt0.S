@@ -1,9 +1,11 @@
 #include "kernel.def"
 
 .macro stack n s
-	.section .bss.\n
+	.section .stack.\n, "ax"
+	.globl \n
 	\n = .
 	. = . + \s
+	.globl \n\()_top
 	\n\()_top = .
 .endm
 
@@ -24,43 +26,45 @@ stack abtstack, 256
 stack irqstack, 256
 stack fiqstack, 256
 stack undstack, 256
-stack sysstack, 256
-stack kernelstack, 1024
+stack sysstack, 4096
 
 .section .vectors, "ax"
 .globl __vectors
 __vectors:
 	/* Exception table. */
 
-	b reset       /* 0x00: Reset */
-	b und_handler /* 0x04: Undefined instruction */
-	b svc_handler /* 0x08: SWI */
-	b abt_handler /* 0x0c: Prefetch abort */
-	b abt_handler /* 0x10: Data abort */
-	b reset       /* 0x14: Hypervisor trap (?) */
-	b irq_handler /* 0x18: IRQ interrupt */
-	b fiq_handler /* 0x1c: FIQ interrupt */
-
-.globl trap_monitor
-trap_monitor = reset
+	b reset        /* 0x00: Reset */
+	b und_handler  /* 0x04: Undefined instruction */
+	b svc_handler  /* 0x08: SWI */
+	b pabt_handler /* 0x0c: Prefetch abort */
+	b dabt_handler /* 0x10: Data abort */
+	b reset        /* 0x14: Hypervisor trap (?) */
+	b irq_handler  /* 0x18: IRQ interrupt */
+	b fiq_handler  /* 0x1c: FIQ interrupt */
 
 proc svc_handler
 	b svc_handler
+	movs pc, r14
 
-proc abt_handler
-	b abt_handler
+proc pabt_handler
+	mov r0, #4
+	b led_halt_and_blink
+	subs pc, r14, #4
+
+//proc dabt_handler
+//	subs pc, r14, #8
 
 proc irq_handler
 	b irq_handler
+	subs pc, r14, #4
 
 proc fiq_handler
 	b fiq_handler
+	subs pc, r14, #4
 
 proc und_handler
 	b und_handler
-
-proc sys_handler
-	b sys_handler
+	movs pc, r14
 
 proc reset
 	/* On entry:

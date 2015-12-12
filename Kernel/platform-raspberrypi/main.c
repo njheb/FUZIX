@@ -108,7 +108,7 @@ void platform_init(uint8_t* atags)
 
 	set_tlb_entry(0x00000000, 0x00000000, CACHED|BUFFERED); /* Kernel 1:1 mapping */
 	set_tlb_entry(0x3f200000, 0x20200000, 0);               /* I/O ports (use Pi2 virtual address) */
-	set_tlb_entry(0x80000000, 0x00100000, CACHED|BUFFERED); /* Startup process */
+	set_tlb_entry(0x80000000, 0x00100000, CACHED|BUFFERED); /* Startup process space */
 	enable_mmu();
 
 	/* Detect how much memory we have. */
@@ -119,8 +119,15 @@ void platform_init(uint8_t* atags)
 
 	/* Initialise system peripherals. */
 
-	jtag_init();
+	led_init();
+	//jtag_init();
 	tty_rawinit();
+
+	/* We're actually in a process (which will eventually exec init). Make sure
+	 * our udata block is at least slightly sane. */
+
+	memset(&udata, 0, sizeof(udata));
+	udata.u_page = 1;
 
 	/* And go! */
 
@@ -149,4 +156,17 @@ int uputl(uint32_t val, void *uaddr)
 	return *(uint32_t *)uaddr;
 }
 
+void trap_monitor(void)
+{
+	led_halt_and_blink(3);
+}
+
+void dabt_handler(void)
+{
+	uint32_t insn = (uint32_t)__builtin_return_address(0) - 8;
+	uint32_t reason = mrc(15, 0, 5, 0, 0) & 0xf;
+	uint32_t fault_addr = mrc(15, 0, 6, 0, 0);
+	kprintf("data abort for address %x at %x because %x\n", fault_addr, insn, reason);
+	for (;;);
+}
 
