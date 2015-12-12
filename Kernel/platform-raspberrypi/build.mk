@@ -9,7 +9,7 @@ $(kernelversion.result):
 	$(hide) (cd $(dir $@) && $(kernelversion.abssrcs) $(VERSION) $(SUBVERSION))
 	$(hide) mv $(dir $@)/version.c $@
 
-kernel.srcs = \
+elfkernel.srcs = \
 	../bankfixed.c \
 	../dev/blkdev.c \
 	../dev/devsd.c \
@@ -35,12 +35,13 @@ kernel.srcs = \
 	devtty.c \
 	libc.c \
 	main.c \
+	raspberrypi.c \
 	tricks.s \
 	$(kernelversion.result)
 
-kernel.includes += \
+elfkernel.includes += \
 
-kernel.cflags += \
+elfkernel.cflags += \
 	-Wno-int-to-pointer-cast \
 	-Wno-pointer-to-int-cast \
 	-Wno-parentheses \
@@ -48,13 +49,22 @@ kernel.cflags += \
 	-fno-common \
 	-g -gdwarf-2 \
 
-kernel.asflags += \
+elfkernel.asflags += \
 	-g -gdwarf-2 \
 
-kernel.ldflags += \
+elfkernel.ldflags += \
 	--relax \
 	-g
 
-kernel.result = $(TOP)/kernel-$(PLATFORM).elf
-$(call build, kernel, kernel-elf)
+elfkernel.result = $(abspath $(TOP)/kernel-$(PLATFORM).elf)
+$(call build, elfkernel, kernel-elf)
+
+kernel.ext = img
+kernel.srcs = $(elfkernel.result)
+kernel.result = $(TOP)/kernel-$(PLATFORM).img
+$(call build, kernel, nop)
+$(kernel.result):
+	@echo OBJCOPY $@
+	$(hide) mkdir -p $(dir $@)
+	$(hide) $(TARGETOBJCOPY) -O binary $(elfkernel.result) $(kernel.result)
 
