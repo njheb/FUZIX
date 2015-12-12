@@ -5,12 +5,12 @@ A = a
 
 # Target gcc setup.
 
-TARGETCC = arm-linux-gnueabi-gcc
-TARGETCPP = arm-linux-gnueabi-cpp -nostdinc -undef -P
-TARGETAS = arm-linux-gnueabi-as
-TARGETAR = arm-linux-gnueabi-ar
-TARGETLD = arm-linux-gnueabi-ld
-TARGETOBJCOPY = arm-linux-gnueabi-objcopy
+TARGETCC = arm-none-eabi-gcc
+TARGETCPP = arm-none-eabi-cpp -nostdinc -undef -P
+TARGETAS = arm-none-eabi-as
+TARGETAR = arm-none-eabi-ar
+TARGETLD = arm-none-eabi-ld
+TARGETOBJCOPY = arm-none-eabi-objcopy
 
 targetgcc.cflags += \
 	-g \

@@ -225,6 +225,22 @@ extern struct
 }
 GPIO;
 
+enum
+{
+	GPIO_FUNC_INPUT = 0,
+	GPIO_FUNC_OUTPUT = 1,
+	GPIO_FUNC_ALT0 = 4,
+	GPIO_FUNC_ALT1 = 5,
+	GPIO_FUNC_ALT2 = 6,
+	GPIO_FUNC_ALT3 = 7,
+	GPIO_FUNC_ALT4 = 3,
+	GPIO_FUNC_ALT5 = 2,
+
+	GPIO_PULL_OFF = 0,
+	GPIO_PULL_DOWN = 1,
+	GPIO_PULL_UP = 2
+};
+
 extern struct
 {
 	volatile uint32_t DR;    /* 00 */
@@ -254,5 +270,29 @@ extern struct
 }
 UART0;
 
+extern struct
+{
+	volatile uint32_t READ;    /* 00 */
+	uint32_t padding1[3];
+	volatile uint32_t PEEK;    /* 10 */
+	volatile uint32_t SENDER;  /* 14 */
+	volatile uint32_t STATUS;  /* 18 */
+	volatile uint32_t CONFIG;  /* 1c */
+	volatile uint32_t WRITE;   /* 20 */
+	uint32_t padding2[3];
+}
+SBM;
+
+enum
+{
+	MAIL_EMPTY = (1<<31),
+	MAIL_FULL = (1<<30)
+};
+
+extern void gpio_set_pin_func(int pin, int func, int mode);
+extern void mbox_write(int channel, uint32_t value);
+extern uint32_t mbox_read(int channel);
+
 #endif
+
 

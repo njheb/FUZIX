@@ -60,26 +60,10 @@ void tty_interrupt(void)
 
 void tty_rawinit(void)
 {
-	GPIO.FSEL1 = GPIO.FSEL1
-		& ~(7<<12) /* GPIO14 */
-		| (2<<12)  /* = alt5 */
-		& ~(7<<15) /* GPIO15 */
-		| (2<<15)  /* = alt5 */
-		;
+	/* UART0 is the full UART; UART1 is the mini UART */
 
-	/* Disable UART. */
-
-	GPIO.PUD = 0;
-	busy_wait(150);
-
-	/* Disable pullup/down pins. */
-
-	GPIO.PUDCLK0 = (1<<14) | (1<<15);
-	busy_wait(150);
-
-	/* Write 0 to GPPUDCLK0 to make change take effect. */
-
-	GPIO.PUDCLK0 = 0;
+	gpio_set_pin_func(14, GPIO_FUNC_ALT0, GPIO_PULL_OFF); /* UART0_TXD */
+	gpio_set_pin_func(15, GPIO_FUNC_ALT0, GPIO_PULL_OFF); /* UART0_RXD */
 
 	/* Clear pending interruppts. */
 

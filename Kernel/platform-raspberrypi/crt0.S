@@ -27,9 +27,9 @@ stack undstack, 256
 stack sysstack, 256
 stack kernelstack, 1024
 
-.section .text._start
-.globl _start
-_start:
+.section .vectors, "ax"
+.globl __vectors
+__vectors:
 	/* Exception table. */
 
 	b reset       /* 0x00: Reset */
@@ -70,11 +70,6 @@ proc reset
 	 *
 	 * r2 gets passed through to platform_main so it can look at it.
 	 */
-
-	/* Tell the processor where the exception table is. */
-
-	ldr r0, =_start
-	mcr p15, 0, r0, c12, c0, 0
 
 	/* Set up stacks. The ARM remembers the stack pointer for each processor
 	 * mode. */
