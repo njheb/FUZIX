@@ -4,6 +4,7 @@ matrix:
         - env: PLATFORM=msp430fr5969
         - env: PLATFORM=dragon-nx32
         - env: PLATFORM=trs80
+        - env: PLATFORM=raspberrypi
 before_install:
     - sudo add-apt-repository ppa:david.given/ppa -y
     - sudo add-apt-repository ppa:tormodvolden/m6809 -y
@@ -30,6 +31,10 @@ before_install:
             sudo apt-get install lwtools:i386 
             wget http://toolshed.sourceforge.net/gcc/gcc-6809_4.6.4lw-1~precise_i386.deb
             sudo dpkg -i gcc-6809_4.6.4lw-1~precise_i386.deb
+        fi
+    - |
+        if [ $PLATFORM = "raspberrypi" ]; then
+            sudo apt-get install gcc-arm-none-eabi
         fi
 language: c
 script:
