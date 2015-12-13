@@ -289,6 +289,18 @@ enum
 	MAIL_FULL = (1<<30)
 };
 
+#define invalidate_insn_cache()     mcr(15, 0, 7, 5, 0, 0)
+#define flush_prefetch_buffer()     mcr(15, 0, 7, 5, 4, 0)
+#define flush_branch_target_cache() mcr(15, 0, 7, 5, 6, 0)
+#define invalidate_data_cache()     mcr(15, 0, 7, 6, 0, 0)
+#define clean_data_cache()          mcr(15, 0, 7, 10, 0, 0)
+#define data_sync_barrier()         mcr(15, 0, 7, 10, 4, 0)
+#define data_mem_barrier()          mcr(15, 0, 7, 10, 5, 0)
+#define insn_sync_barrier()         flush_prefetch_buffer()
+#define insn_mem_barrier()          flush_prefetch_buffer()
+
+#define invalidate_tlb()            mcr(15, 0, 8, 7, 0, 0)
+
 extern void gpio_set_pin_func(int pin, int func, int mode);
 extern void gpio_set_output_pin(int pin, bool value);
 extern void led_init(void);
