@@ -63,8 +63,6 @@ FILESYSTEM_ISIZE = 640
 FILESYSTEM_FSIZE = 20480 # 10MB
 FILESYSTEM = \
 	/bin/banner             0755 $(util-banner.result) \
-
-#\
 	/bin/basename           0755 $(util-basename.result) \
 	/bin/bd                 0755 $(util-bd.result) \
 	/bin/cal                0755 $(util-cal.result) \

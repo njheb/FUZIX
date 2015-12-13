@@ -1,0 +1,9 @@
+#ifndef RASPBERRYPI_LD_H
+#define RASPBERRYPI_LD_H
+
+#define USER_BASE 0x80000000
+#define USER_SIZE (1024*1024)
+#define UDATA_BASE (USER_BASE + USER_LENGTH - 1024)
+
+#endif
+
