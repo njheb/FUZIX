@@ -8,6 +8,7 @@ matrix:
 before_install:
     - sudo add-apt-repository ppa:david.given/ppa -y
     - sudo add-apt-repository ppa:tormodvolden/m6809 -y
+    - sudo add-apt-repository ppa:terry.guo/gcc-arm-embedded -y
     - sudo apt-get update -q
     - sudo apt-get install libmpc2 libc6-i386 lib32stdc++6 lib32z1 libmpc2:i386
     - export PATH=$PATH:/usr/local/bin:$HOME/msp430/bin
