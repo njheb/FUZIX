@@ -3,14 +3,26 @@ $(call find-makefile)
 O = o
 A = a
 
+# Find which compiler toolchain we're using.
+
+find-file = $(shell which $1)
+
+ifneq ($(call find-file, arm-none-eabi-gcc),)
+TOOLCHAIN = arm-none-eabi
+else ifneq ($(call find-file, arm-linux-gnueabihf-gcc),)
+TOOLCHAIN = arm-linux-gnueabihf
+else
+$(error Cannot find a suitable ARM toolchain!)
+endif
+
 # Target gcc setup.
 
-TARGETCC = arm-none-eabi-gcc
-TARGETCPP = arm-none-eabi-cpp -nostdinc -undef -P
-TARGETAS = arm-none-eabi-as
-TARGETAR = arm-none-eabi-ar
-TARGETLD = arm-none-eabi-ld
-TARGETOBJCOPY = arm-none-eabi-objcopy
+TARGETCC      = $(TOOLCHAIN)-gcc
+TARGETCPP     = $(TOOLCHAIN)-cpp -nostdinc -undef -P
+TARGETAS      = $(TOOLCHAIN)-as
+TARGETAR      = $(TOOLCHAIN)-ar
+TARGETLD      = $(TOOLCHAIN)-ld
+TARGETOBJCOPY = $(TOOLCHAIN)-objcopy
 
 targetgcc.cflags += \
 	-g \
@@ -19,6 +31,7 @@ targetgcc.cflags += \
 	-funit-at-a-time \
 	-mcpu=arm1176jzf-s \
 	-mfpu=vfp \
+	-marm \
 	-mfloat-abi=hard
 
 target-exe.ldflags += \
@@ -49,9 +62,9 @@ libc-functions.localsrcs += \
 FILESYSTEM_ISIZE = 640
 FILESYSTEM_FSIZE = 20480 # 10MB
 FILESYSTEM = \
+	/bin/banner             0755 $(util-banner.result) \
 
 #\
-	/bin/banner             0755 $(util-banner.result) \
 	/bin/basename           0755 $(util-basename.result) \
 	/bin/bd                 0755 $(util-bd.result) \
 	/bin/cal                0755 $(util-cal.result) \
