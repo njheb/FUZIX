@@ -142,7 +142,9 @@ ifneq ($$(filter %.exe, $$($1.result)),)
 
 # Locate the libgcc used by this target.
 
-$1.libgcc ?= $(shell $(TARGETCC) --print-libgcc)
+$1.libgcc ?= $$(shell $$(TARGETCC) \
+	$$(targetgcc.cflags) $$($$($1.class).cflags) $$($1.cflags) \
+	--print-libgcc)
 
 $$($1.result): $$($1.objs) $(crt0.result) \
 		$$($$($1.class).extradeps) $$($1.extradeps) $$($1.libgcc) \

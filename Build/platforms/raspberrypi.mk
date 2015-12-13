@@ -32,10 +32,10 @@ targetgcc.cflags += \
 	-mcpu=arm1176jzf-s \
 	-mfpu=vfp \
 	-marm \
-	-mfloat-abi=hard
+	-mfloat-abi=hard \
 
 target-exe.ldflags += \
-	-g
+	-g \
 
 targetgcc.includes += -I$(TOP)/Library/include/msp430x
 
