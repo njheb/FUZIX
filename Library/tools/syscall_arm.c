@@ -26,8 +26,7 @@ static void write_call(int n)
   {
 	/* Varargs syscalls have the first argument in r0 and the others on
 	 * the stack. We support up to four parameters. */
-	fprintf(fp, "\tadd r1, sp, #4\n"
-	            "\tldmia r1, {r1, r2, r3}\n");
+	fprintf(fp, "\tldmia sp, {r1, r2, r3}\n");
   }
 
   /* On entry, the four parameters are in r0-r3. The syscall number is
