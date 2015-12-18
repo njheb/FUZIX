@@ -1,11 +1,17 @@
 .section ".header"
 .globl _start
 _start:
-	.word 0                            // chmem (0 means 'all')
+	.ascii "bF68"
+	.word 4                // rev
+	.word 1f               // entrypoint
 	.word __data_start
-	.word __data_len
-	.word __bss_len
-	.word 1f
+	.word __data_end
+	.word __bss_end
+	.word 4096             // stack_size
+	.word 0                // reloc_start
+	.word 0                // reloc_count
+	.word 0                // flags
+	.word 0, 0, 0, 0, 0, 0 // filler
 
 1:
 	/* Wipe BSS.*/
