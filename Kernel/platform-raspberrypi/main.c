@@ -59,8 +59,9 @@ static void enable_mmu(void)
 
 	change_control_register(CR_A, CR_M|CR_C|CR_I);
 
-	mcr(15, 0, 7, 7,  0, 0); /* invalidate caches */
-	mcr(15, 0, 8, 7,  0, 0); /* invalidate entire TLB */
+	invalidate_data_cache();
+	invalidate_insn_cache();
+	invalidate_tlb();
 
 	change_control_register(CR_M|CR_C|CR_I, 0);
 }
@@ -106,22 +107,32 @@ void platform_init(uint8_t* atags)
 	/* Create a 1:1 TLB table and turn it on, so that our peripherals end up
 	 * being in a known good location. */
 
-	set_tlb_entry(0x00000000, 0x00000000, CACHED|BUFFERED); /* Kernel 1:1 mapping */
-	set_tlb_entry(0x3f200000, 0x20200000, 0);               /* I/O ports (use Pi2 virtual address) */
-	set_tlb_entry(0x80000000, 0x00100000, CACHED|BUFFERED); /* Startup process space */
+	/* Kernel page 1:1 mapping */
+	set_tlb_entry(0x00000000, 0x00000000, CACHED|BUFFERED);
+
+	/* The 16 peripheral pages (we map them to the Pi2 virtual address, for
+	 * simplicity) */
+	for (int page=0; page<0x10; page++)
+	{
+		uint32_t offset = page * MEGABYTE;
+		set_tlb_entry(0x3f000000|offset, 0x20000000|offset, 0);
+	}
+
+	/* ...and our user address space. */
+	set_tlb_entry(0x80000000, 0x00100000, CACHED|BUFFERED);
 	enable_mmu();
-
-	/* Detect how much memory we have. */
-
-	ramsize = 1024 * 1024;
-	procmem = 1023 * 1024;
-	kmemaddblk(&__bssend, &__kerneltop - &__bssend);
 
 	/* Initialise system peripherals. */
 
+	kmemaddblk(&__bssend, &__kerneltop - &__bssend);
 	led_init();
 	//jtag_init();
 	tty_rawinit();
+
+	/* Detect how much memory we have. */
+
+	ramsize = mbox_get_arm_memory() / 1024;
+	procmem = ramsize - 1024; /* reserve 1MB for the kernel */
 
 	/* We're actually in a process (which will eventually exec init). Make sure
 	 * our udata block is at least slightly sane. */

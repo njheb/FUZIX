@@ -55,7 +55,6 @@ void platform_interrupt(void)
 
 void device_init(void)
 {
-	sd_rawinit();
 	devsd_init();
 }
 

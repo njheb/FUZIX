@@ -3,31 +3,39 @@
 
 extern struct
 {
-	volatile uint32_t EMMC_ARG2;
-	volatile uint32_t EMMC_BLKSIZECNT;
-	volatile uint32_t EMMC_ARG1;
-	volatile uint32_t EMMC_CMDTM;
-	volatile uint32_t EMMC_RESP0;
-	volatile uint32_t EMMC_RESP1;
-	volatile uint32_t EMMC_RESP2;
-	volatile uint32_t EMMC_RESP3;
-	volatile uint32_t EMMC_DATA;
-	volatile uint32_t EMMC_STATUS;
-	volatile uint32_t EMMC_CONTROL0;
-	volatile uint32_t EMMC_CONTROL1;
-	volatile uint32_t EMMC_INTERRUPT;
-	volatile uint32_t EMMC_IRPT_MASK;
-	volatile uint32_t EMMC_IRPT_EN;
-	volatile uint32_t EMMC_CONTROL2;
-	volatile uint32_t EMMC_HOST_CAPS;
-	uint32_t padding1[3];
-	volatile uint32_t EMMC_BOOT_TIMEOUT;
-	uint32_t padding2[4];
-	volatile uint32_t EMMC_EXRDFIFO_EN;
-	uint32_t padding3[28];
-	volatile uint32_t EMMC_SPI_INT_SPT;
-	uint32_t padding4[2];
-	volatile uint32_t EMMC_SLOTISR_VER;
+	volatile uint32_t ARG2;           /* 00 */
+	volatile uint32_t BLKSIZECNT;     /* 04 */
+	volatile uint32_t ARG1;           /* 08 */
+	volatile uint32_t CMDTM;          /* 0c */
+	volatile uint32_t RESP0;          /* 10 */ 
+	volatile uint32_t RESP1;          /* 14 */
+	volatile uint32_t RESP2;          /* 18 */
+	volatile uint32_t RESP3;          /* 1c */
+	volatile uint32_t DATA;           /* 20 */
+	volatile uint32_t STATUS;         /* 24 */
+	volatile uint32_t CONTROL0;       /* 28 */
+	volatile uint32_t CONTROL1;       /* 2c */
+	volatile uint32_t INTERRUPT;      /* 30 */
+	volatile uint32_t IRPT_MASK;      /* 34 */
+	volatile uint32_t IRPT_EN;        /* 38 */
+	volatile uint32_t CONTROL2;       /* 3c */
+	volatile uint32_t CAPABILITIES0;  /* 40 */
+	volatile uint32_t CAPABILITIES1;  /* 44 */
+	uint32_t padding1[2];             /* 48 4c */
+	volatile uint32_t FORCE_IRPT;     /* 50 */
+	uint32_t padding2[7];             /* 54 58 5c 60 64 68 6c */
+	volatile uint32_t BOOT_TIMEOUT;   /* 70 */
+	volatile uint32_t DBG_SEL;        /* 74 */
+	uint32_t padding3[2];             /* 78 7c */
+	volatile uint32_t EXRDFIFO_CFG;   /* 80 */
+	volatile uint32_t EXRDFIFO_EN;    /* 84 */
+	volatile uint32_t TUNE_STEP;      /* 88 */
+	volatile uint32_t TUNE_STEPS_STD; /* 8c */
+	volatile uint32_t TUNE_STEPS_DDR; /* 90 */
+	uint32_t padding4[23];            /* 94-ec */
+	volatile uint32_t SPI_INT_SPT;    /* f0 */
+	uint32_t padding5[2];             /* f4 f8 */
+	volatile uint32_t SLOTISR_VER;    /* fc */
 }
 EMMC;
 
@@ -35,131 +43,162 @@ enum
 {
 	/* EMMC command flags */
 
-	CMD_TYPE_NORMAL  = 0x00000000,
-	CMD_TYPE_SUSPEND = 0x00400000,
-	CMD_TYPE_RESUME  = 0x00800000,
-	CMD_TYPE_ABORT   = 0x00c00000,
-	CMD_IS_DATA      = 0x00200000,
-	CMD_IXCHK_EN     = 0x00100000,
-	CMD_CRCCHK_EN    = 0x00080000,
-	CMD_RSPNS_NO     = 0x00000000,
-	CMD_RSPNS_136    = 0x00010000,
-	CMD_RSPNS_48     = 0x00020000,
-	CMD_RSPNS_48B    = 0x00030000,
-	TM_MULTI_BLOCK   = 0x00000020,
-	TM_DAT_DIR_HC    = 0x00000000,
-	TM_DAT_DIR_CH    = 0x00000010,
-	TM_AUTO_CMD23    = 0x00000008,
-	TM_AUTO_CMD12    = 0x00000004,
-	TM_BLKCNT_EN     = 0x00000002,
-	TM_MULTI_DATA    = (CMD_IS_DATA|TM_MULTI_BLOCK|TM_BLKCNT_EN),
+	EMMC_CMD_TYPE_NORMAL  = 0x00000000,
+	EMMC_CMD_TYPE_SUSPEND = 0x00400000,
+	EMMC_CMD_TYPE_RESUME  = 0x00800000,
+	EMMC_CMD_TYPE_ABORT   = 0x00c00000,
+	EMMC_CMD_IS_DATA      = 0x00200000,
+	EMMC_CMD_IXCHK_EN     = 0x00100000,
+	EMMC_CMD_CRCCHK_EN    = 0x00080000,
+	EMMC_CMD_RSPNS_NO     = 0x00000000,
+	EMMC_CMD_RSPNS_136    = 0x00010000,
+	EMMC_CMD_RSPNS_48     = 0x00020000,
+	EMMC_CMD_RSPNS_48B    = 0x00030000,
+	EMMC_TM_MULTI_BLOCK   = 0x00000020,
+	EMMC_TM_DAT_DIR_HC    = 0x00000000,
+	EMMC_TM_DAT_DIR_CH    = 0x00000010,
+	EMMC_TM_AUTO_CMD23    = 0x00000008,
+	EMMC_TM_AUTO_CMD12    = 0x00000004,
+	EMMC_TM_BLKCNT_EN     = 0x00000002,
+	EMMC_TM_MULTI_DATA    = (EMMC_CMD_IS_DATA | EMMC_TM_MULTI_BLOCK |
+                             EMMC_TM_BLKCNT_EN),
 
 	/* INTERRUPT register settings */
 
-	INT_AUTO_ERROR   = 0x01000000,
-	INT_DATA_END_ERR = 0x00400000,
-	INT_DATA_CRC_ERR = 0x00200000,
-	INT_DATA_TIMEOUT = 0x00100000,
-	INT_INDEX_ERROR  = 0x00080000,
-	INT_END_ERROR    = 0x00040000,
-	INT_CRC_ERROR    = 0x00020000,
-	INT_CMD_TIMEOUT  = 0x00010000,
-	INT_ERR          = 0x00008000,
-	INT_ENDBOOT      = 0x00004000,
-	INT_BOOTACK      = 0x00002000,
-	INT_RETUNE       = 0x00001000,
-	INT_CARD         = 0x00000100,
-	INT_READ_RDY     = 0x00000020,
-	INT_WRITE_RDY    = 0x00000010,
-	INT_BLOCK_GAP    = 0x00000004,
-	INT_DATA_DONE    = 0x00000002,
-	INT_CMD_DONE     = 0x00000001,
-	INT_ERROR_MASK   = (INT_CRC_ERROR|INT_END_ERROR|INT_INDEX_ERROR|
-						INT_DATA_TIMEOUT|INT_DATA_CRC_ERR|INT_DATA_END_ERR|
-						INT_ERR|INT_AUTO_ERROR),
-	INT_ALL_MASK     = (INT_CMD_DONE|INT_DATA_DONE|INT_READ_RDY|INT_WRITE_RDY|
-						INT_ERROR_MASK),
+	EMMC_INT_AUTO_ERROR   = 0x01000000,
+	EMMC_INT_DATA_END_ERR = 0x00400000,
+	EMMC_INT_DATA_CRC_ERR = 0x00200000,
+	EMMC_INT_DATA_TIMEOUT = 0x00100000,
+	EMMC_INT_INDEX_ERROR  = 0x00080000,
+	EMMC_INT_END_ERROR    = 0x00040000,
+	EMMC_INT_CRC_ERROR    = 0x00020000,
+	EMMC_INT_CMD_TIMEOUT  = 0x00010000,
+	EMMC_INT_ERR          = 0x00008000,
+	EMMC_INT_ENDBOOT      = 0x00004000,
+	EMMC_INT_BOOTACK      = 0x00002000,
+	EMMC_INT_RETUNE       = 0x00001000,
+	EMMC_INT_CARD         = 0x00000100,
+	EMMC_INT_READ_RDY     = 0x00000020,
+	EMMC_INT_WRITE_RDY    = 0x00000010,
+	EMMC_INT_BLOCK_GAP    = 0x00000004,
+	EMMC_INT_DATA_DONE    = 0x00000002,
+	EMMC_INT_CMD_DONE     = 0x00000001,
+	EMMC_INT_ERROR_MASK   = (EMMC_INT_CRC_ERROR | EMMC_INT_END_ERROR | 
+	                         EMMC_INT_INDEX_ERROR | EMMC_INT_DATA_TIMEOUT |
+							 EMMC_INT_DATA_CRC_ERR | EMMC_INT_DATA_END_ERR |
+						     EMMC_INT_ERR | EMMC_INT_AUTO_ERROR),
+	EMMC_INT_ALL_MASK     = (EMMC_INT_CMD_DONE | EMMC_INT_DATA_DONE |
+	                         EMMC_INT_READ_RDY | EMMC_INT_WRITE_RDY |
+						     EMMC_INT_ERROR_MASK),
 
 	/* CONTROL register settings */
 
-	C0_SPI_MODE_EN   = 0x00100000,
-	C0_HCTL_HS_EN    = 0x00000004,
-	C0_HCTL_DWITDH   = 0x00000002,
+	EMMC_C0_SPI_MODE_EN   = 0x00100000,
+	EMMC_C0_HCTL_HS_EN    = 0x00000004,
+	EMMC_C0_HCTL_DWITDH   = 0x00000002,
 
-	C1_SRST_DATA     = 0x04000000,
-	C1_SRST_CMD      = 0x02000000,
-	C1_SRST_HC       = 0x01000000,
-	C1_TOUNIT_DIS    = 0x000f0000,
-	C1_TOUNIT_MAX    = 0x000e0000,
-	C1_CLK_GENSEL    = 0x00000020,
-	C1_CLK_EN        = 0x00000004,
-	C1_CLK_STABLE    = 0x00000002,
-	C1_CLK_INTLEN    = 0x00000001,
+	EMMC_C1_SRST_DATA     = 0x04000000,
+	EMMC_C1_SRST_CMD      = 0x02000000,
+	EMMC_C1_SRST_HC       = 0x01000000,
+	EMMC_C1_TOUNIT_DIS    = 0x000f0000,
+	EMMC_C1_TOUNIT_MAX    = 0x000e0000,
+	EMMC_C1_DATA_TOUNIT   = 0x00010000,
+	EMMC_C1_CLK_FREQ8     = 0x00000100,
+	EMMC_C1_CLK_FREQ_MS2  = 0x00000040,
+	EMMC_C1_CLK_GENSEL    = 0x00000020,
+	EMMC_C1_CLK_EN        = 0x00000004,
+	EMMC_C1_CLK_STABLE    = 0x00000002,
+	EMMC_C1_CLK_INTLEN    = 0x00000001,
 
-	FREQ_SETUP       =     400000,  /* 400 Khz */
-	FREQ_NORMAL      =   25000000,  /* 25 Mhz */
+	EMMC_FREQ_SETUP       =     400000,  /* 400 Khz */
+	EMMC_FREQ_NORMAL      =   25000000,  /* 25 Mhz */
 
 	/* CONTROL2 values */
 
-	C2_VDD_18        = 0x00080000,
-	C2_UHSMODE       = 0x00070000,
-	C2_UHS_SDR12     = 0x00000000,
-	C2_UHS_SDR25     = 0x00010000,
-	C2_UHS_SDR50     = 0x00020000,
-	C2_UHS_SDR104    = 0x00030000,
-	C2_UHS_DDR50     = 0x00040000,
+	EMMC_C2_VDD_18        = 0x00080000,
+	EMMC_C2_UHSMODE       = 0x00070000,
+	EMMC_C2_UHS_SDR12     = 0x00000000,
+	EMMC_C2_UHS_SDR25     = 0x00010000,
+	EMMC_C2_UHS_SDR50     = 0x00020000,
+	EMMC_C2_UHS_SDR104    = 0x00030000,
+	EMMC_C2_UHS_DDR50     = 0x00040000,
 
 	/* SLOTISR_VER values */
 
-	HOST_SPEC_NUM              = 0x00ff0000,
-	HOST_SPEC_NUM_SHIFT        = 16,
-	HOST_SPEC_V3               = 2,
-	HOST_SPEC_V2               = 1,
-	HOST_SPEC_V1               = 0,
+	EMMC_HOST_SPEC_NUM        = 0x00ff0000,
+	EMMC_HOST_SPEC_NUM_SHIFT  = 16,
+	EMMC_HOST_SPEC_V3         = 2,
+	EMMC_HOST_SPEC_V2         = 1,
+	EMMC_HOST_SPEC_V1         = 0,
 
 	/* STATUS register settings */
 
-	SR_DAT_LEVEL1        = 0x1e000000,
-	SR_CMD_LEVEL         = 0x01000000,
-	SR_DAT_LEVEL0        = 0x00f00000,
-	SR_DAT3              = 0x00800000,
-	SR_DAT2              = 0x00400000,
-	SR_DAT1              = 0x00200000,
-	SR_DAT0              = 0x00100000,
-	SR_WRITE_PROT        = 0x00080000,  /* From SDHC spec v2, BCM says reserved */
-	SR_READ_AVAILABLE    = 0x00000800,  /* ???? undocumented */
-	SR_WRITE_AVAILABLE   = 0x00000400,  /* ???? undocumented */
-	SR_READ_TRANSFER     = 0x00000200,
-	SR_WRITE_TRANSFER    = 0x00000100,
-	SR_DAT_ACTIVE        = 0x00000004,
-	SR_DAT_INHIBIT       = 0x00000002,
-	SR_CMD_INHIBIT       = 0x00000001,
+	EMMC_SR_DAT_LEVEL1        = 0x1e000000,
+	EMMC_SR_CMD_LEVEL         = 0x01000000,
+	EMMC_SR_DAT_LEVEL0        = 0x00f00000,
+	EMMC_SR_DAT3              = 0x00800000,
+	EMMC_SR_DAT2              = 0x00400000,
+	EMMC_SR_DAT1              = 0x00200000,
+	EMMC_SR_DAT0              = 0x00100000,
+	EMMC_SR_WRITE_PROT        = 0x00080000,  /* From SDHC spec v2, BCM says reserved */
+	EMMC_SR_READ_AVAILABLE    = 0x00000800,  /* ???? undocumented */
+	EMMC_SR_WRITE_AVAILABLE   = 0x00000400,  /* ???? undocumented */
+	EMMC_SR_READ_TRANSFER     = 0x00000200,
+	EMMC_SR_WRITE_TRANSFER    = 0x00000100,
+	EMMC_SR_DAT_ACTIVE        = 0x00000004,
+	EMMC_SR_DAT_INHIBIT       = 0x00000002,
+	EMMC_SR_CMD_INHIBIT       = 0x00000001,
 
+	/* R1 values */
+
+	EMMC_R1_OUT_OF_RANGE      = 0x80000000,  /* 31   E */ 
+	EMMC_R1_ADDRESS_ERROR     = 0x40000000,  /* 30   E */
+	EMMC_R1_BLOCK_LEN_ERROR   = 0x20000000,  /* 29   E */
+	EMMC_R1_ERASE_SEQ_ERROR   = 0x10000000,  /* 28   E */
+	EMMC_R1_ERASE_PARAM_ERROR = 0x08000000,  /* 27   E */
+	EMMC_R1_WP_VIOLATION      = 0x04000000,  /* 26   E */
+	EMMC_R1_CARD_IS_LOCKED    = 0x02000000,  /* 25   E */
+	EMMC_R1_LOCK_UNLOCK_FAIL  = 0x01000000,  /* 24   E */
+	EMMC_R1_COM_CRC_ERROR     = 0x00800000,  /* 23   E */
+	EMMC_R1_ILLEGAL_COMMAND   = 0x00400000,  /* 22   E */
+	EMMC_R1_CARD_ECC_FAILED   = 0x00200000,  /* 21   E */
+	EMMC_R1_CC_ERROR          = 0x00100000,  /* 20   E */
+	EMMC_R1_ERROR             = 0x00080000,  /* 19   E */
+	EMMC_R1_CSD_OVERWRITE     = 0x00010000,  /* 16   E */
+	EMMC_R1_WP_ERASE_SKIP     = 0x00008000,  /* 15   E */
+	EMMC_R1_CARD_ECC_DISABLED = 0x00004000,  /* 14   E */
+	EMMC_R1_ERASE_RESET       = 0x00002000,  /* 13   E */
+	EMMC_R1_CARD_STATE        = 0x00001e00,  /* 12:9   */
+	EMMC_R1_READY_FOR_DATA    = 0x00000100,  /* 8      */
+	EMMC_R1_APP_CMD           = 0x00000020,  /* 5      */
+	EMMC_R1_AKE_SEQ_ERROR     = 0x00000004,  /* 3    E */
+
+	EMMC_R1_ERRORS_MASK       = 0xfff9c004,  /* All above bits which indicate errors */
 };
 
 extern struct
 {
-	volatile uint32_t CMD;     /* 00 */
-	volatile uint32_t ARG;     /* 04 */
-	volatile uint32_t TIMEOUT; /* 08 */
-	volatile uint32_t CLKDIV;  /* 0c */
-	volatile uint32_t RSP0;    /* 10 */
-	volatile uint32_t RSP1;    /* 14 */
-	volatile uint32_t RSP2;    /* 18 */
-	volatile uint32_t RSP3;    /* 1c */
-	volatile uint32_t STATUS;  /* 20 */
-	volatile uint32_t UNK_0x24;
-	volatile uint32_t UNK_0x28;
-	volatile uint32_t UNK_0x2c;
-	volatile uint32_t VDD;
-	volatile uint32_t EDM;
-	volatile uint32_t HOST_CFG;
-	volatile uint32_t HBCT;
-	volatile uint32_t DATA;
-	volatile uint32_t UNK_0x44;
-	volatile uint32_t UNK_0x48;
-	volatile uint32_t UNK_0x4c;
-	volatile uint32_t HBLC;
+	volatile uint32_t CMD;      /* 00 */
+	volatile uint32_t ARG;      /* 04 */
+	volatile uint32_t TIMEOUT;  /* 08 */
+	volatile uint32_t CLKDIV;   /* 0c */
+	volatile uint32_t RSP0;     /* 10 */
+	volatile uint32_t RSP1;     /* 14 */
+	volatile uint32_t RSP2;     /* 18 */
+	volatile uint32_t RSP3;     /* 1c */
+	volatile uint32_t STATUS;   /* 20 */
+	volatile uint32_t UNK_0x24; /* 24 */
+	volatile uint32_t UNK_0x28; /* 28 */
+	volatile uint32_t UNK_0x2c; /* 2c */
+	volatile uint32_t VDD;      /* 30 */
+	volatile uint32_t EDM;      /* 34 */
+	volatile uint32_t HOST_CFG; /* 38 */
+	volatile uint32_t HBCT;     /* 3c */
+	volatile uint32_t DATA;     /* 40 */
+	volatile uint32_t UNK_0x44; /* 44 */
+	volatile uint32_t UNK_0x48; /* 48 */
+	volatile uint32_t UNK_0x4c; /* 4c */
+	volatile uint32_t HBLC;     /* 50 */
 }
 ALTMMC;
 
@@ -177,7 +216,17 @@ enum
 
     /* status register */
 
-    ALTMMC_FIFO_STATUS = 1<<0
+    ALTMMC_FIFO_STATUS = 1<<0,
+
+	/* SD card response bits */
+
+	SD_R1_IDLE            = 1<<0,
+	SD_R1_ERASE_RESET     = 1<<1,
+	SD_R1_ILLEGAL_COMMAND = 1<<2,
+	SD_R1_CRC_ERROR       = 1<<3,
+	SD_R1_ERASE_ERROR     = 1<<4,
+	SD_R1_ADDRESS_ERROR   = 1<<5,
+	SD_R1_PARAMETER_ERROR = 1<<6,
 };
 
 extern struct
@@ -279,14 +328,13 @@ extern struct
 	volatile uint32_t STATUS;  /* 18 */
 	volatile uint32_t CONFIG;  /* 1c */
 	volatile uint32_t WRITE;   /* 20 */
-	uint32_t padding2[3];
 }
 SBM;
 
 enum
 {
-	MAIL_EMPTY = (1<<31),
-	MAIL_FULL = (1<<30)
+	MAIL_EMPTY = (1<<30),
+	MAIL_FULL = (1<<31)
 };
 
 #define invalidate_insn_cache()     mcr(15, 0, 7, 5, 0, 0)
@@ -306,8 +354,62 @@ extern void gpio_set_output_pin(int pin, bool value);
 extern void led_init(void);
 extern void led_set(bool value);
 extern void led_halt_and_blink(int count);
-extern void mbox_write(int channel, uint32_t value);
-extern uint32_t mbox_read(int channel);
+
+enum
+{
+	MBOX_PROCESS_REQUEST = 0x00000000,
+	MBOX_REQUEST_OK      = 0x80000000,
+	MBOX_REQUEST_ERROR   = 0x80000001,
+
+	MBOX_END             = 0,
+};
+
+enum
+{
+	MBOX_PROP_CLOCK_EMMC  = 1,
+	MBOX_PROP_CLOCK_UART  = 2,
+	MBOX_PROP_CLOCK_ARM   = 3,
+	MBOX_PROP_CLOCK_CORE  = 4,
+	MBOX_PROP_CLOCK_V3D   = 5,
+	MBOX_PROP_CLOCK_H264  = 6,
+	MBOX_PROP_CLOCK_ISP   = 7,
+	MBOX_PROP_CLOCK_SDRAM = 8,
+	MBOX_PROP_CLOCK_PIXEL = 9,
+	MBOX_PROP_CLOCK_PWM   = 10,
+
+	MBOX_DEVICE_SDCARD = 0,
+	MBOX_DEVICE_UART0  = 1,
+	MBOX_DEVICE_UART1  = 2,
+	MBOX_DEVICE_USB    = 3,
+	MBOX_DEVICE_I2C0   = 4,
+	MBOX_DEVICE_I2C1   = 5,
+	MBOX_DEVICE_I2C2   = 6,
+	MBOX_DEVICE_SPI    = 7,
+	MBOX_DEVICE_CCP2TX = 8,
+
+	MBOX_GET_FIRMWARE_REVISION = 0x00000001,
+	MBOX_GET_BOARD_MODEL       = 0x00010001,
+	MBOX_GET_BOARD_REVISION    = 0x00010002,
+	MBOX_GET_MAC_ADDRESS       = 0x00010003,
+	MBOX_GET_BOARD_SERIAL      = 0x00010004,
+	MBOX_GET_ARM_MEMORY        = 0x00010005,
+	MBOX_GET_VC_MEMORY         = 0x00010006,
+	MBOX_GET_POWER_STATE       = 0x00020001,
+	MBOX_SET_POWER_STATE       = 0x00028001,
+	MBOX_GET_CLOCK_STATE       = 0x00030001,
+	MBOX_SET_CLOCK_STATE       = 0x00038001,
+	MBOX_GET_CLOCK_RATE        = 0x00030002,
+	MBOX_SET_CLOCK_RATE        = 0x00038002,
+	MBOX_GET_CLOCK_MAX_RATE    = 0x00030004,
+	MBOX_GET_CLOCK_MIN_RATE    = 0x00030007,
+
+
+};
+
+extern uint32_t mbox_get_arm_memory(void);
+extern int mbox_get_clock_rate(int clockid);
+extern int mbox_get_power_state(int deviceid);
+extern void mbox_set_power_state(int deviceid, bool state);
 
 #endif
 

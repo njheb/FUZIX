@@ -12,8 +12,6 @@ $(kernelversion.result):
 elfkernel.srcs = \
 	../bankfixed.c \
 	../dev/blkdev.c \
-	../dev/devsd.c \
-	../dev/devsd_discard.c \
 	../dev/mbr.c \
 	../devio.c \
 	../devsys.c \

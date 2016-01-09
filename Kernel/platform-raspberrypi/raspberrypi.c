@@ -71,22 +71,170 @@ void led_halt_and_blink(int count)
 
 void mbox_write(int channel, uint32_t value)
 {
-	while (!(SBM.STATUS & MAIL_FULL))
+	while (SBM.STATUS & MAIL_FULL)
 		;
 
-	SBM.WRITE = channel | ((uint32_t)value << 4);
+	SBM.WRITE = channel | value;
 }
 
 uint32_t mbox_read(int channel)
 {
 	for (;;)
 	{
-		while (!(SBM.STATUS & MAIL_EMPTY))
+		while (SBM.STATUS & MAIL_EMPTY)
 			;
 
 		uint32_t data = SBM.READ;
 		if ((data & 0xf) == channel)
-			return (data >> 4);
+			return data & ~0xf;
 	}
 }
+
+static void rpc(void* buffer)
+{
+	clean_data_cache();
+	data_sync_barrier();
+	data_mem_barrier();
+	mbox_write(8, (uint32_t)buffer | 0xc0000000);
+	mbox_read(8);
+	invalidate_data_cache();
+	data_sync_barrier();
+	data_mem_barrier();
+}
+
+#define ALIGNED(n) __attribute__ ((aligned (n)))
+
+uint32_t mbox_get_arm_memory(void)
+{
+	struct payload
+	{
+		uint32_t baseaddress;
+		uint32_t size;
+	};
+
+	struct ALIGNED(16)
+	{
+		uint32_t size;
+		uint32_t request;
+		uint32_t command;
+		uint32_t reqlen;
+		uint32_t resplen;
+		struct payload payload;
+		uint32_t terminator;
+	} packet = {
+		.size = sizeof(packet),
+		.request = MBOX_PROCESS_REQUEST,
+		.command = MBOX_GET_ARM_MEMORY,
+		.reqlen = sizeof(struct payload),
+	};
+
+	rpc(&packet);
+	if ((packet.request != MBOX_REQUEST_OK) ||
+        (!(packet.resplen & MBOX_REQUEST_OK)))
+		panic("failed VC4 RPC");
+
+	return packet.payload.size;
+}
+
+int mbox_get_clock_rate(int clockid)
+{
+	struct payload
+	{
+		uint32_t clockid;
+		uint32_t frequency;
+	};
+
+	struct ALIGNED(16)
+	{
+		uint32_t size;
+		uint32_t request;
+		uint32_t command;
+		uint32_t reqlen;
+		uint32_t resplen;
+		struct payload payload;
+		uint32_t terminator;
+	} packet = {
+		.size = sizeof(packet),
+		.request = MBOX_PROCESS_REQUEST,
+		.command = MBOX_GET_CLOCK_RATE,
+		.reqlen = sizeof(struct payload),
+		.payload.clockid = clockid,
+	};
+
+	rpc(&packet);
+
+	if ((packet.request != MBOX_REQUEST_OK) ||
+        (!(packet.resplen & MBOX_REQUEST_OK)))
+		panic("failed VC4 RPC");
+
+	return packet.payload.frequency;
+}
+
+int mbox_get_power_state(int deviceid)
+{
+	struct payload
+	{
+		uint32_t deviceid;
+		uint32_t state;
+	};
+
+	struct ALIGNED(16)
+	{
+		uint32_t size;
+		uint32_t request;
+		uint32_t command;
+		uint32_t reqlen;
+		uint32_t resplen;
+		struct payload payload;
+		uint32_t terminator;
+	} packet = {
+		.size = sizeof(packet),
+		.request = MBOX_PROCESS_REQUEST,
+		.command = MBOX_GET_POWER_STATE,
+		.reqlen = sizeof(struct payload),
+		.payload.deviceid = deviceid,
+	};
+
+	rpc(&packet);
+
+	if ((packet.request != MBOX_REQUEST_OK) ||
+        (!(packet.resplen & MBOX_REQUEST_OK)))
+		panic("failed VC4 RPC");
+
+	return packet.payload.state;
+}
+
+void mbox_set_power_state(int deviceid, bool state)
+{
+	struct payload
+	{
+		uint32_t deviceid;
+		uint32_t state;
+	};
+
+	struct ALIGNED(16)
+	{
+		uint32_t size;
+		uint32_t request;
+		uint32_t command;
+		uint32_t reqlen;
+		uint32_t resplen;
+		struct payload payload;
+		uint32_t terminator;
+	} packet = {
+		.size = sizeof(packet),
+		.request = MBOX_PROCESS_REQUEST,
+		.command = MBOX_SET_POWER_STATE,
+		.reqlen = sizeof(struct payload),
+		.payload.deviceid = deviceid,
+		.payload.state = state | 2,
+	};
+
+	rpc(&packet);
+
+	if ((packet.request != MBOX_REQUEST_OK) ||
+        (!(packet.resplen & MBOX_REQUEST_OK)))
+		panic("failed VC4 RPC");
+}
+
 
