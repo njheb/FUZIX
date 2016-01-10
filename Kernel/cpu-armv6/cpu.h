@@ -24,9 +24,6 @@ extern void *memset(void *, int, size_t);
 extern int memcmp(const void *, const void *, size_t);
 extern size_t strlen(const char *);
 
-#define EMAGIC    0x4C    /* Header of executable (JMP) */
-#define EMAGIC_2  0x38	  /* SEC BCS foo */
-
 #define brk_limit() ((udata.u_syscall_sp) - 512)
 
 #define staticfast
@@ -56,6 +53,12 @@ typedef union {            /* this structure is endian dependent */
 
 /* Pointers are 32bit */
 #define POINTER32
+
+/* ARM requires aligned accesses (but it least it traps if you get it wrong).
+ */
+
+#define ALIGNUP(v)   alignup(v, 4)
+#define ALIGNDOWN(v) aligndown(v, 4)
 
 /* Sane behaviour for unused parameters */
 #define used(x)
