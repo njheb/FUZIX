@@ -7,6 +7,7 @@
 #include <blkdev.h>
 #include <printf.h>
 #include <timer.h>
+#include <devsd.h>
 #include "externs.h"
 
 struct devsw dev_tab[] =  /* The device driver switch table */

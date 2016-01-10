@@ -227,6 +227,31 @@ enum
 	SD_R1_ERASE_ERROR     = 1<<4,
 	SD_R1_ADDRESS_ERROR   = 1<<5,
 	SD_R1_PARAMETER_ERROR = 1<<6,
+
+	/* SD card OCR register bits */
+
+	SD_OCR_V1_6           = 1<<4,
+	SD_OCR_V1_7           = 1<<5,
+	SD_OCR_V1_8           = 1<<6,
+	SD_OCR_V1_9           = 1<<7,
+	SD_OCR_V2_0           = 1<<8,
+	SD_OCR_V2_1           = 1<<9,
+	SD_OCR_V2_2           = 1<<10,
+	SD_OCR_V2_3           = 1<<11,
+	SD_OCR_V2_4           = 1<<12,
+	SD_OCR_V2_5           = 1<<13,
+	SD_OCR_V2_6           = 1<<14,
+	SD_OCR_V2_7           = 1<<15,
+	SD_OCR_V2_8           = 1<<16,
+	SD_OCR_V2_9           = 1<<17,
+	SD_OCR_V3_0           = 1<<18,
+	SD_OCR_V3_1           = 1<<19,
+	SD_OCR_V3_2           = 1<<20,
+	SD_OCR_V3_3           = 1<<21,
+	SD_OCR_V3_4           = 1<<22,
+	SD_OCR_V3_5           = 1<<23,
+	SD_OCR_HIGHCAP        = 1<<30,
+	SD_OCR_BUSY           = 1<<31,
 };
 
 extern struct
