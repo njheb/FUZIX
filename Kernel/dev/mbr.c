@@ -6,12 +6,12 @@
 #include <blkdev.h>
 
 typedef struct {
-    uint8_t  status;
-    uint8_t  chs_first[3];
-    uint8_t  type;
-    uint8_t  chs_last[3];
-    uint32_t lba_first;
-    uint32_t lba_count;
+    uint8_t status;
+    uint8_t chs_first[3];
+    uint8_t type;
+    uint8_t chs_last[3];
+    uint8_t lba_first[4];
+    uint8_t lba_count[4];
 } partition_table_entry_t;
 
 #define MBR_ENTRY_COUNT 4
@@ -42,7 +42,7 @@ void mbr_parse(char letter)
     do{
         blk_op.nblock = 1;
         if(!blk_op.blkdev->transfer() || le16_to_cpu(br->signature) != MBR_SIGNATURE)
-	    break;
+			break;
 
 	/* avoid an infinite loop where extended boot records form a loop */
 	if(seen >= 50)
@@ -68,18 +68,19 @@ void mbr_parse(char letter)
 		    /* Extended boot record, or chained table; in principle a drive should contain
 		       at most one extended partition so this code is OK even for parsing the MBR.
 		       Chained EBR addresses are relative to the start of the extended partiton. */
-		    blk_op.lba = ep_offset + le32_to_cpu(br->partition[i].lba_first);
+		    blk_op.lba = ep_offset + le32_to_cpu(READ_UNALIGNED_32(br->partition[i].lba_first));
 		    if(next >= 4)
 			break;
 		    /* we include all primary partitions but we deliberately knobble the size in 
 		       order to prevent catastrophic accidents */
-		    br->partition[i].lba_count = cpu_to_le32(2L);
+		    WRITE_UNALIGNED_32(br->partition[i].lba_count, 2L);
 		    /* fall through */
 		default:
 		    /* Regular partition: In EBRs these are relative to the EBR (not the disk, nor
 		       the extended partition) */
-		    blk_op.blkdev->lba_first[next] = br_offset + le32_to_cpu(br->partition[i].lba_first);
-		    blk_op.blkdev->lba_count[next] = le32_to_cpu(br->partition[i].lba_count);
+		    blk_op.blkdev->lba_first[next] = br_offset
+					+ le32_to_cpu(READ_UNALIGNED_32(&br->partition[i].lba_first));
+		    blk_op.blkdev->lba_count[next] = le32_to_cpu(READ_UNALIGNED_32(br->partition[i].lba_count));
 		    next++;
 		    kprintf("hd%c%d ", letter, next);
 	    }

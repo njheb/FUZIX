@@ -36,6 +36,25 @@ From UZI by Doug Braun and UZI280 by Stefan Nitschke.
 #define ALIGNDOWN(v) (v)
 #endif
 
+#ifndef READ_UNALIGNED_16
+#endif
+
+#if defined(CONFIG_NO_UNALIGNED_ACCESSES)
+#define READ_UNALIGNED_16(addr)         read_unaligned_16((const uint8_t*) (addr))
+#define READ_UNALIGNED_32(addr)         read_unaligned_32((const uint8_t*) (addr))
+#define WRITE_UNALIGNED_16(addr, value) write_unaligned_16((uint8_t*) (addr), value)
+#define WRITE_UNALIGNED_32(addr, value) write_unaligned_32((uint8_t*) (addr), value)
+extern uint16_t read_unaligned_16(const uint8_t* addr);
+extern uint32_t read_unaligned_32(const uint8_t* addr);
+extern uint16_t write_unaligned_16(uint8_t* addr, uint16_t value);
+extern uint32_t write_unaligned_32(uint8_t* addr, uint32_t value);
+#else
+#define READ_UNALIGNED_16(addr) (*(uint16_t*)(addr))
+#define READ_UNALIGNED_32(addr) (*(uint32_t*)(addr))
+#define WRITE_UNALIGNED_16(addr, value) ((*(uint16_t*)(addr)) = value)
+#define WRITE_UNALIGNED_32(addr, value) ((*(uint32_t*)(addr)) = value)
+#endif
+
 #define CPM_EMULATOR_FILENAME    "/usr/cpm/emulator"
 
 /* Maximum UFTSIZE can be is 16, then you need to alter the O_CLOEXEC code */

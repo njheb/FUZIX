@@ -26,6 +26,8 @@
 #undef CONFIG_BANKED
 #undef SWAPDEV
 
+#define CONFIG_NO_UNALIGNED_ACCESSES
+
 /* Video terminal, not a serial tty */
 #undef CONFIG_VT
 
@@ -70,7 +72,7 @@ extern uint8_t* __progtop;
 #define SD_DRIVE_COUNT 1
 #define MAX_BLKDEV 1
 
-#define BOOTDEVICE 0x0001 /* hda1 */
+#define BOOTDEVICE 0x0002 /* hda2 */
 
 extern void platform_discard(void);
 
