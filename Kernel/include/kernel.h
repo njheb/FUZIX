@@ -63,9 +63,9 @@ extern uint32_t write_unaligned_32(uint8_t* addr, uint32_t value);
 #define jobcontrol_out(x,y)
 #define limit_exceeded(x,y) (0)
 #define can_signal(p, sig) \
-	(udata.u_ptab->p_uid == (p)->p_uid || super())
-#define pathbuf()	tmpbuf()
-#define pathfree(tb)	brelse(tb)
+       (udata.u_ptab->p_uid == (p)->p_uid || super())
+#define pathbuf()      tmpbuf()
+#define pathfree(tb)   brelse(tb)
 #endif
 
 #define CPM_EMULATOR_FILENAME    "/usr/cpm/emulator"
@@ -90,7 +90,7 @@ extern uint32_t write_unaligned_32(uint8_t* addr, uint32_t value);
 #endif
 
 #ifndef NGROUP
-#define NGROUP		16
+#define NGROUP         16
 #endif
 
 
@@ -152,7 +152,7 @@ typedef uint16_t blkno_t;    /* Can have 65536 512-byte blocks in filesystem */
 #define BLKSIZE		512
 #define BLKSHIFT	9
 #define BLKMASK		511
-#define BLKOVERSIZE	25	/* Bits 25+ mean we exceeded the file size */
+#define BLKOVERSIZE    25      /* Bits 25+ mean we exceeded the file size */
 
 /* Help the 8bit compilers out by preventing any 32bit promotions */
 #define BLKOFF(x)	(((uint16_t)(x)) & BLKMASK)
@@ -424,7 +424,7 @@ typedef struct p_tab {
     uaddr_t	p_profoff;
 #endif    
 #ifdef CONFIG_LEVEL_2
-    uint16_t	p_session;
+    uint16_t   p_session;
 #endif
 } p_tab, *ptptr;
 
@@ -480,8 +480,8 @@ typedef struct u_data {
     inoptr	u_ctty;		/* Controlling tty */
 #ifdef CONFIG_LEVEL_2
     uint16_t    u_groups[NGROUP]; /* Group list */
-    uint8_t	u_ngroup;
-    struct rlimit u_rlimit[NRLIMIT];	/* Resource limits */
+    uint8_t    u_ngroup;
+    struct rlimit u_rlimit[NRLIMIT];   /* Resource limits */
 #endif
 } u_data;
 
@@ -591,7 +591,7 @@ struct s_argblk {
 #define EALREADY	39		/* Operation already in progress */
 #define EADDRINUSE	40		/* Address already in use */
 #define EADDRNOTAVAIL	41		/* Address not available */
-#define ENOSYS		42		/* No such system call */
+#define ENOSYS         42              /* No such system call */
 
 /*
  * ioctls for kernel internal operations start at 0x8000 and cannot be issued
@@ -644,7 +644,7 @@ struct sysinfoblk {
   uint16_t config;		/* Config flag mask */
 #define CONF_PROFIL		1
 #define CONF_NET		2	/* Hah.. 8) */
-#define CONF_LEVEL_2		4
+#define CONF_LEVEL_2    4
   uint16_t loadavg[3];
   uint32_t spare2;
     			        /* Followed by uname strings */
@@ -834,8 +834,8 @@ extern void selwake_pipe(inoptr i, uint16_t mask);
 extern int _select(void);
 #else
 #define selwait_inode(i,smask,setit) do {} while(0)
-#define selwake_inode(i,smask) do {} while(0)
-#define selwake_pipe(i,smask) do {} while(0)
+#define selwake_inode(i,smask,setit) do {} while(0)
+#define selwake_pipe(i,smask,setit) do {} while(0)
 #endif
 
 /* swap.c */
