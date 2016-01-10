@@ -25,7 +25,7 @@ extern struct group *getgrnam __P((const char * name));
 
 extern struct group * fgetgrent __P((FILE * file));
 
-extern int setgroups __P((size_t n, int *groups));
+extern int setgroups __P((size_t n, const gid_t* groups));
 extern int initgroups __P((const char * user, gid_t gid));
 
 extern struct group * __getgrent __P((int grp_fd));
