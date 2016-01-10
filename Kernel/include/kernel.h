@@ -55,6 +55,19 @@ extern uint32_t write_unaligned_32(uint8_t* addr, uint32_t value);
 #define WRITE_UNALIGNED_32(addr, value) ((*(uint32_t*)(addr)) = value)
 #endif
 
+#ifdef CONFIG_LEVEL_2
+#include "level2.h"
+#else
+
+#define jobcontrol_in(x,y)
+#define jobcontrol_out(x,y)
+#define limit_exceeded(x,y) (0)
+#define can_signal(p, sig) \
+	(udata.u_ptab->p_uid == (p)->p_uid || super())
+#define pathbuf()	tmpbuf()
+#define pathfree(tb)	brelse(tb)
+#endif
+
 #define CPM_EMULATOR_FILENAME    "/usr/cpm/emulator"
 
 /* Maximum UFTSIZE can be is 16, then you need to alter the O_CLOEXEC code */
@@ -75,6 +88,11 @@ extern uint32_t write_unaligned_32(uint8_t* addr, uint32_t value);
 #ifndef MAPBASE		/* Usually the start of program and map match */
 #define MAPBASE PROGBASE
 #endif
+
+#ifndef NGROUP
+#define NGROUP		16
+#endif
+
 
 #define MAXTICKS     10   /* Max ticks before switching out (time slice)
                             default process time slice */
@@ -134,6 +152,7 @@ typedef uint16_t blkno_t;    /* Can have 65536 512-byte blocks in filesystem */
 #define BLKSIZE		512
 #define BLKSHIFT	9
 #define BLKMASK		511
+#define BLKOVERSIZE	25	/* Bits 25+ mean we exceeded the file size */
 
 /* Help the 8bit compilers out by preventing any 32bit promotions */
 #define BLKOFF(x)	(((uint16_t)(x)) & BLKMASK)
@@ -300,7 +319,7 @@ struct mount {
 /* The sleeping range must be together see swap.c */
 #define P_READY         2    /* Runnable   */
 #define P_SLEEP         3    /* Sleeping; can be awakened by signal */
-#define P_XSLEEP        4    /* Sleeping, don't wake up for signal */
+#define P_STOPPED       4    /* Sleeping, don't wake up for signal */
 #define P_PAUSE         5    /* Sleeping for pause(); can wakeup for signal */
 #define P_WAIT          6    /* Executed a wait() */
 #define P_FORKING       7    /* In process of forking; do not mess with */
@@ -404,6 +423,9 @@ typedef struct p_tab {
     uaddr_t	p_profsize;
     uaddr_t	p_profoff;
 #endif    
+#ifdef CONFIG_LEVEL_2
+    uint16_t	p_session;
+#endif
 } p_tab, *ptptr;
 
 typedef struct u_data {
@@ -456,6 +478,11 @@ typedef struct u_data {
     inoptr	u_root;		/* Index into inode table of / */
     inoptr	u_rename;	/* Used in n_open for rename() checking */
     inoptr	u_ctty;		/* Controlling tty */
+#ifdef CONFIG_LEVEL_2
+    uint16_t    u_groups[NGROUP]; /* Group list */
+    uint8_t	u_ngroup;
+    struct rlimit u_rlimit[NRLIMIT];	/* Resource limits */
+#endif
 } u_data;
 
 
@@ -564,6 +591,7 @@ struct s_argblk {
 #define EALREADY	39		/* Operation already in progress */
 #define EADDRINUSE	40		/* Address already in use */
 #define EADDRNOTAVAIL	41		/* Address not available */
+#define ENOSYS		42		/* No such system call */
 
 /*
  * ioctls for kernel internal operations start at 0x8000 and cannot be issued
@@ -616,6 +644,7 @@ struct sysinfoblk {
   uint16_t config;		/* Config flag mask */
 #define CONF_PROFIL		1
 #define CONF_NET		2	/* Hah.. 8) */
+#define CONF_LEVEL_2		4
   uint16_t loadavg[3];
   uint32_t spare2;
     			        /* Followed by uname strings */
@@ -768,7 +797,7 @@ extern void readi(inoptr ino, uint8_t flag);
 extern void writei(inoptr ino, uint8_t flag);
 extern int16_t doclose (uint8_t uindex);
 extern inoptr rwsetup (bool is_read, uint8_t *flag);
-extern int dev_openi(inoptr *ino, uint8_t flag);
+extern int dev_openi(inoptr *ino, uint16_t flag);
 extern void sync(void);
 
 /* mm.c */
@@ -798,15 +827,15 @@ extern void exec_or_die(void);
 extern void seladdwait(struct selmap *s);
 extern void selrmwait(struct selmap *s);
 extern void selwake(struct selmap *s);
-#ifdef CONFIG_SELECT
-extern int selwait_inode(inoptr i, uint8_t smask, uint8_t setit);
+#ifdef CONFIG_LEVEL_2
+extern void selwait_inode(inoptr i, uint8_t smask, uint8_t setit);
 extern void selwake_inode(inoptr i, uint16_t mask);
 extern void selwake_pipe(inoptr i, uint16_t mask);
 extern int _select(void);
 #else
 #define selwait_inode(i,smask,setit) do {} while(0)
-#define selwake_inode(i,smask,setit) do {} while(0)
-#define selwake_pipe(i,smask,setit) do {} while(0)
+#define selwake_inode(i,smask) do {} while(0)
+#define selwake_pipe(i,smask) do {} while(0)
 #endif
 
 /* swap.c */

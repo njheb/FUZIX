@@ -26,9 +26,13 @@ void psleep(void *event)
 	switch (udata.u_ptab->p_status) {
 	case P_SLEEP:		// echo output from devtty happens while processes are still sleeping but in-context
 		nready++;	/* We will fix this back up below */
-	case P_RUNNING:	// normal process
+	case P_STOPPED:		// coming to a halt
+	case P_RUNNING:		// normal process
 		break;
 	default:
+#ifdef DEBUG
+	        kprintf("psleep(0x%x) -> %d:%d", event, udata.u_ptab->p_pid, udata.u_ptab->p_status);
+#endif
 		panic(PANIC_VOODOO);
 	}
 
@@ -394,7 +398,7 @@ void unix_syscall(void)
 	 * Assembly Language Function handler in lowlevel.s
 	 */
 	if (udata.u_callno >= FUZIX_SYSCALL_COUNT) {
-		udata.u_error = EINVAL;
+		udata.u_error = ENOSYS;
 	} else {
 #ifdef DEBUG
 		kprintf("\t\tpid %d: syscall %d\t%s(%x, %x, %x)\n",
@@ -427,9 +431,10 @@ void unix_syscall(void)
 void sgrpsig(uint16_t pgrp, uint16_t sig)
 {
 	ptptr p;
-	for (p = ptab; p < ptab_end; ++p) {
-		if (p->p_pgrp == pgrp)
-			ssig(p, sig);
+	if (pgrp) {
+		for (p = ptab; p < ptab_end; ++p)
+			if (p->p_pgrp == pgrp)
+				ssig(p, sig);
 	}
 }
 
@@ -457,14 +462,17 @@ void chksigs(void)
 		if (*svec == SIG_DFL) {
 			/* SIGCONT is subtle - we woke the process to handle
 			   the signal so ignoring here works fine */
-			if (j == SIGCHLD || j == SIGURG ||
+			if (j == SIGCHLD || j == SIGURG || j == SIGSTOP ||
+#ifdef CONFIG_LEVEL_2
+                            j == SIGTTIN || j == SIGTTOU ||
+#endif
 			    j == SIGIO || j == SIGCONT || udata.u_ptab->p_pid == 1) {
 				udata.u_ptab->p_pending &= ~m;	// unset the bit
 				continue;
 			}
 			/* FIXME: core dump on some signals */
 #ifdef DEBUG
-			kputs("process terminated by signal: ");
+			kprintf("process terminated by signal %d\n", j);
 #endif
 			doexit(0, j);
 		} else if (*svec != SIG_IGN) {
@@ -490,12 +498,23 @@ void ssig(ptptr proc, uint16_t sig)
 	sigm = sigmask(sig);
 
 	irq = di();
-	/* FIXME:
-	   SIGCONT needs to wake even if ignored.
-	   SIGSTOP needs to actually stop the task once it hits
-	   the syscall exit path */
+
 	if (proc->p_status != P_EMPTY) {	/* Presumably was killed just now */
-		if (sig == SIGCONT || !(proc->p_ignored & sigm)) {
+	        /* SIGSTOP can't be ignored and puts the process into P_STOPPED */
+	        /* FIXME: Level 2 will need a lot more handling here, both SIGTSTP
+	           handling and the wait() handling for stopping */
+	        if (sig == SIGSTOP || sig == SIGTTIN || sig == SIGTTOU) {
+	                if (proc->p_status == P_RUNNING ||
+                            proc->p_status == P_READY)
+                                    nready--;
+                        proc->p_status = P_STOPPED;
+                /* SIGCONT likewise has an unblockable effect */
+		} else if (sig == SIGCONT && proc->p_status == P_STOPPED) {
+		        proc->p_status = P_READY;
+		        nready++;
+		}
+		/* Routine signal behaviour */
+		else if (!(proc->p_ignored & sigm)) {
 			/* Don't wake for held signals */
 			if (!(proc->p_held & sigm)) {
 				switch (proc->p_status) {
@@ -540,6 +559,22 @@ void acctexit(ptptr p)
 	writei(ino, 0);
 }
 #endif
+
+/* Perform the terminal process signalling */
+static int signal_parent(ptptr p)
+{
+        if (p->p_ignored & (1UL << SIGCHLD)) {
+		/* POSIX.1 says that SIG_IGN for SIGCHLD means don't go
+		   zombie, just clean up as we go */
+		udata.u_ptab->p_status = P_EMPTY;
+                return 0;
+	}
+	ssig(p, SIGCHLD);
+	/* Wake up a waiting parent, if any. */
+	wakeup((char *)p);
+	udata.u_ptab->p_status = P_ZOMBIE;
+	return 1;
+}
 
 void doexit(int16_t val, int16_t val2)
 {
@@ -589,6 +624,7 @@ void doexit(int16_t val, int16_t val2)
 		if (p->p_status == P_EMPTY || p == udata.u_ptab)
 			continue;
 		/* Set any child's parents to our parent */
+		/* FIXME: do we need to wakeup the parent if we do this ? */
 		if (p->p_pptr == udata.u_ptab)
 			p->p_pptr = udata.u_ptab->p_pptr;
 		/* Send SIGHUP to any pgrp members and remove
@@ -596,6 +632,7 @@ void doexit(int16_t val, int16_t val2)
                 if (p->p_pgrp == udata.u_ptab->p_pid) {
 			p->p_pgrp = 0;
 			ssig(p, SIGHUP);
+			ssig(p, SIGCONT);
 		}
 	}
 	tty_exit();
@@ -610,13 +647,7 @@ void doexit(int16_t val, int16_t val2)
 #endif
         udata.u_page = 0xFFFFU;
         udata.u_page2 = 0xFFFFU;
-	/* FIXME: send SIGCLD here */
-	/* FIXME: POSIX.1 says that SIG_IGN for SIGCLD means don't go
-	   zombie, just clean up as we go */
-	/* Wake up a waiting parent, if any. */
-	wakeup((char *) udata.u_ptab->p_pptr);
-
-	udata.u_ptab->p_status = P_ZOMBIE;
+        signal_parent(udata.u_ptab->p_pptr);
 	nready--;
 	nproc--;
 
