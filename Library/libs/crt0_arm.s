@@ -1,16 +1,16 @@
 .section ".header"
 .globl _start
 _start:
-	.ascii "bF68"
+	.ascii "bFAR"
 	.word 4                // rev
-	.word 1f               // entrypoint
-	.word __data_start
-	.word __data_end
-	.word __bss_end
+	.word 1f - _start      // entrypoint
+	.word __data_start - _start
+	.word __data_end - _start
+	.word __bss_end - _start
 	.word 4096             // stack_size
 	.word 0                // reloc_start
 	.word 0                // reloc_count
-	.word 0                // flags
+	.word 0x1              // flags (load in RAM)
 	.word 0, 0, 0, 0, 0, 0 // filler
 
 1:
