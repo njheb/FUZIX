@@ -37,7 +37,7 @@ targetgcc.cflags += \
 target-exe.ldflags += \
 	-g \
 
-targetgcc.includes += -I$(TOP)/Library/include/msp430x
+targetgcc.includes += -I$(TOP)/Library/include/arm
 
 # CPU architecture and which syscall generator to use.
 
