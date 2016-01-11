@@ -10,6 +10,9 @@
 #include "raspberrypi.h"
 #include "externs.h"
 
+#undef DEBUG_MMC
+#undef DEBUG
+
 static uint32_t card_address;
 
 static void wait_for_mmc(void)
@@ -28,12 +31,16 @@ static uint32_t mmc_rpc(uint32_t cmd, uint32_t arg)
 	if (e)
 		ALTMMC.STATUS = 0;
 
-	//kprintf("cmd: %d arg: %x\n", cmd, arg);
+	#if defined(DEBUG_MMC)
+		kprintf("cmd: %d arg: %x\n", cmd, arg);
+	#endif
 	ALTMMC.ARG = arg;
 	ALTMMC.CMD = ALTMMC_ENABLE | cmd;
 
 	wait_for_mmc();
-	//kprintf("-> %x %x %x\n", ALTMMC.CMD, ALTMMC.STATUS, ALTMMC.RSP0);
+	#if defined(DEBUG_MMC)
+		kprintf("-> %x %x %x\n", ALTMMC.CMD, ALTMMC.STATUS, ALTMMC.RSP0);
+	#endif
 	return ALTMMC.STATUS & 0xff;
 }
 
@@ -52,9 +59,15 @@ uint8_t devsd_transfer_sector(void)
 
 	if (blk_op.is_read)
 	{
+		#if defined(DEBUG)
+			kprintf("sd: read %x\n", blk_op.lba);
+		#endif
 		uint32_t addr = blk_op.lba << 9;
 		if (mmc_rpc(17 | ALTMMC_BUSY | ALTMMC_READ, addr)) /* READ_SINGLE_BLOCK */
+		{
+			kprintf("sd: error during transfer setup\n");
 			goto ioerror;
+		}
 
 		uint32_t* ptr = (uint32_t*) blk_op.addr;
 		for (i=0; i<128; i++)
@@ -63,7 +76,10 @@ uint8_t devsd_transfer_sector(void)
 				;
 
 			if (ALTMMC.STATUS != ALTMMC_FIFO_STATUS)
+			{
+				kprintf("sd: error during transfer: %x\n", ALTMMC.STATUS);
 				goto ioerror;
+			}
 
 			*ptr++ = ALTMMC.DATA;
 		}
@@ -77,7 +93,6 @@ uint8_t devsd_transfer_sector(void)
 
 ioerror:
 	mmc_rpc(12, 0); /* STOP_TRANSMISSION */
-	kprintf("sd: error!\n");
 	udata.u_error = EIO;
 	return 0;
 }
@@ -113,7 +128,7 @@ void devsd_init(void)
 	}
 	else
 	{
-		kprintf("SDv1: ");
+		kprintf("SDv1 ");
 		sdhc = 1;
 	}
 
@@ -129,7 +144,7 @@ void devsd_init(void)
 
 	bool highcap = !!(ALTMMC.RSP0 & SD_OCR_HIGHCAP);
 	if (highcap)
-		kprintf("high capacity: ");
+		kprintf("(high capacity) ");
 
 	/* CARD IS IN READY MODE */
 
