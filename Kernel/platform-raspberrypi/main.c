@@ -78,8 +78,12 @@ void pagemap_init(void)
 	 * all the others, and each one is mapped at 0x80000000. */
 
 	int i;
-	for (i=1; i<PTABSIZE; i++)
+	for (i=2; i<PTABSIZE; i++)
 		pagemap_add(i);
+
+	/* Page 1 must be mapped *last*, so that it gets allocated first. */
+
+	pagemap_add(1);
 }
 
 void map_init(void)
@@ -134,9 +138,13 @@ void platform_init(uint8_t* atags)
 	ramsize = mbox_get_arm_memory() / 1024;
 	procmem = ramsize - 1024; /* reserve 1MB for the kernel */
 
-	/* We're actually in a process (which will eventually exec init). Make sure
-	 * our udata block is at least slightly sane. */
+	/* We're actually in a process (which will eventually exec init). We need
+	 * to make sure that the udata pointer is preset to the right block. We've
+	 * ensured that init will go in page 1, by means of the nasty logic in
+	 * pagemap_init().
+	 */
 
+	set_udata_for_page(1);
 	memset(&udata, 0, sizeof(udata));
 	udata.u_page = 1;
 
@@ -147,15 +155,11 @@ void platform_init(uint8_t* atags)
 
 /* Uget/Uput 32bit */
 
-uint32_t ugetl(void *uaddr, int *err)
+uint32_t ugetl(void *uaddr)
 {
 	if (!valaddr(uaddr, 4)) {
-		if (err)
-			*err = -1;
 		return -1;
 	}
-	if (err)
-		*err = 0;
 	return *(uint32_t *)uaddr;
 
 }
@@ -164,7 +168,8 @@ int uputl(uint32_t val, void *uaddr)
 {
 	if (!valaddr(uaddr, 4))
 		return -1;
-	return *(uint32_t *)uaddr;
+	*(uint32_t *)uaddr = val;
+	return 0;
 }
 
 void trap_monitor(void)
@@ -180,29 +185,4 @@ void dabt_handler(void)
 	kprintf("data abort for address %x at %x because %x\n", fault_addr, insn, reason);
 	for (;;);
 }
-
-uint16_t read_unaligned_16(const uint8_t* addr)
-{
-	return addr[0] | (addr[1]<<8);
-}
-
-uint32_t read_unaligned_32(const uint8_t* addr)
-{
-	return read_unaligned_16(addr) | (read_unaligned_16(addr+2) << 16);
-}
-
-uint16_t write_unaligned_16(uint8_t* addr, uint16_t value)
-{
-	addr[0] = value;
-	addr[1] = value>>8;
-	return value;
-}
-
-uint32_t write_unaligned_32(uint8_t* addr, uint32_t value)
-{
-	write_unaligned_16(addr, value);
-	write_unaligned_16(addr+2, value>>16);
-	return value;
-}
-
 

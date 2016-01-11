@@ -23,8 +23,7 @@ extern void *pagemap_base(void);
 
 #endif
 
-
-extern uint32_t ugetl(void *uaddr, int *err);
+extern uint32_t ugetl(void *uaddr);
 extern int uputl(uint32_t val, void *uaddr);
 
 #endif

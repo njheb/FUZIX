@@ -23,8 +23,8 @@ From UZI by Doug Braun and UZI280 by Stefan Nitschke.
 
 #define min(a,b) ( (a) < (b) ? (a) : (b) )
 #define max(a,b) ( (a) > (b) ? (a) : (b) )
-#define aligndown(v,a) (uint8_t*)((intptr_t)(v) & ~((a)-1))
-#define alignup(v,a) (uint8_t*)((intptr_t)((v) + (a)-1) & ~((a)-1))
+#define aligndown(v,a) (uint8_t*)((uintptr_t)(v) & ~((a)-1))
+#define alignup(v,a) (uint8_t*)((uintptr_t)((v) + (a)-1) & ~((a)-1))
 
 /* By default, assume machines that don't need alignment. */
 

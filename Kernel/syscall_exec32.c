@@ -11,6 +11,8 @@
 
 #define ARGBUF_SIZE	2048
 
+/* Note that all addresses here are relative to PROGLOAD, even if the file
+ * contains no actual relocations. */
 struct binfmt_flat {
 	uint8_t magic[4];
 	uint32_t rev;
@@ -67,7 +69,7 @@ static int valid_hdr(inoptr ino, struct binfmt_flat *bf)
 		return 0;
 	if (bf->data_start > bf->data_end)
 		return 0;
-	if (bf->data_end < bf->bss_end)
+	if (bf->data_end > bf->bss_end)
 		return 0;
 	if (bf->bss_end + bf->stack_size < bf->bss_end)
 		return 0;
@@ -118,7 +120,7 @@ arg_t _execve(void)
 	struct s_argblk *abuf, *ebuf;
 	int argc;
 	uint32_t bin_size;	/* Will need to be bigger on some cpus */
-	void *progbase, *top;
+	void *progbase;
 	uaddr_t go;
 
 	if (!(ino = n_open(name, NULLINOPTR)))
@@ -142,16 +144,15 @@ arg_t _execve(void)
 	buf = bread(ino->c_dev, bmap(ino, 0, 1), 0);
 	binflat = (struct binfmt_flat *)buf;
 
-	/* Hard coded for our 68K format. We don't quite use the ucLinux
-	   names, we don't want to load a ucLinux binary in error! */
-	if (buf == NULL || memcmp(buf, "bF68", 4) ||
+	/* Check the magic number at the beginning of the file. */
+	if (buf == NULL || memcmp(buf, EMAGIC, 4) ||
 		!valid_hdr(ino, binflat)) {
 		udata.u_error = ENOEXEC;
 		goto nogood2;
 	}
 
 	/* Memory needed */
-	bin_size = binflat->bss_end + binflat->stack_size;
+	bin_size = (uaddr_t)ALIGNUP(binflat->bss_end + binflat->stack_size);
 
 	/* Gather the arguments, and put them in temporary buffers. */
 	abuf = (struct s_argblk *) kmalloc(ARGBUF_SIZE);
@@ -189,7 +190,7 @@ arg_t _execve(void)
 	 */
 	
 	progbase = (void*)PROGLOAD;
-	top = progbase + bin_size;
+	udata.u_top = (uaddr_t)ALIGNUP(progbase + bin_size);
 
 	uput(buf, (uint8_t *)progbase, 512);	/* Move 1st Block to user bank */
 
@@ -222,7 +223,7 @@ arg_t _execve(void)
 	brelse(buf);
 
 	/* brk eats into the stack allocation */
-	udata.u_break = (uaddr_t)(progbase + binflat->bss_end);
+	udata.u_break = (uaddr_t)ALIGNUP(progbase + binflat->bss_end);
 
 	/* Turn off caught signals */
 	memset(udata.u_sigvec, 0, sizeof(udata.u_sigvec));
@@ -230,11 +231,11 @@ arg_t _execve(void)
 	/* place the arguments, environment and stack at the top of userspace memory. */
 
 	/* Write back the arguments and the environment */
-	nargv = wargs(((char *) top - 4), abuf, &argc);
+	nargv = wargs(((char *) udata.u_top - 4), abuf, &argc);
 	nenvp = wargs((char *) (nargv), ebuf, NULL);
 
 	/* Fill in udata.u_name with Program invocation name */
-	uget((void *) ugetl(nargv, NULL), udata.u_name, 8);
+	uget((void *) ugetl(nargv), udata.u_name, 8);
 	memcpy(udata.u_ptab->p_name, udata.u_name, 8);
 
 	kfree(abuf);
@@ -275,15 +276,14 @@ bool rargs(char **userspace_argv, struct s_argblk * argbuf)
 	char *ptr;		/* Address of base of arg strings in user space */
 	uint8_t c;
 	uint8_t *bufp;
-	int err;
 	void *up = (void *)userspace_argv;
 
 	argbuf->a_argc = 0;	/* Store argc in argbuf */
 	bufp = argbuf->a_buf;
 
-	while ((ptr = (char *) ugetp(up, &err)) != NULL) {
+	while ((ptr = (char *) ugetp(up)) != NULL) {
 		up += sizeof(uptr_t);
-		if (err)
+		if ((uintptr_t)ptr == 0xffffffff)
 			return true;
 		++(argbuf->a_argc);	/* Store argc in argbuf. */
 		do {
@@ -312,7 +312,7 @@ char **wargs(char *ptr, struct s_argblk *argbuf, int *cnt)	// ptr is in userspac
 	sptr = argbuf->a_buf;
 
 	/* Move them into the users address space, at the very top */
-	ptr -= (arglen = argbuf->a_arglen);
+	ptr -= (int)ALIGNUP(arglen = argbuf->a_arglen);
 
 	if (arglen) {
 		uput(sptr, ptr, arglen);

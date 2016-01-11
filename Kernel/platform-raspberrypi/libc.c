@@ -40,7 +40,7 @@ int memcmp(const void* s1, const void* s2, size_t n)
 	uint8_t c1 = 0;
 	uint8_t c2 = 0;
 
-	while (n > 0)
+	while (n-- > 0)
 	{
 		c1 = *p1++;
 		c2 = *p2++;
@@ -55,3 +55,29 @@ void raise(int sig)
 {
 	panic("raise()");
 }
+
+uint16_t read_unaligned_16(const uint8_t* addr)
+{
+	return addr[0] | (addr[1]<<8);
+}
+
+uint32_t read_unaligned_32(const uint8_t* addr)
+{
+	return read_unaligned_16(addr) | (read_unaligned_16(addr+2) << 16);
+}
+
+uint16_t write_unaligned_16(uint8_t* addr, uint16_t value)
+{
+	addr[0] = value;
+	addr[1] = value>>8;
+	return value;
+}
+
+uint32_t write_unaligned_32(uint8_t* addr, uint32_t value)
+{
+	write_unaligned_16(addr, value);
+	write_unaligned_16(addr+2, value>>16);
+	return value;
+}
+
+

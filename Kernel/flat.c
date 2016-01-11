@@ -262,15 +262,11 @@ void *pagemap_base(void)
 
 /* Uget/Uput 32bit */
 
-uint32_t ugetl(void *uaddr, int *err)
+uint32_t ugetl(void *uaddr)
 {
 	if (!valaddr(uaddr, 4)) {
-		if (err)
-			*err = -1;
 		return -1;
 	}
-	if (err)
-		*err = 0;
 	return *(uint32_t *)uaddr;
 
 }
@@ -279,7 +275,8 @@ int uputl(uint32_t val, void *uaddr)
 {
 	if (!valaddr(uaddr, 4))
 		return -1;
-	return *(uint32_t *)uaddr;
+	*(uint32_t *)uaddr = val;
+	return 0;
 }
 
 

@@ -35,6 +35,7 @@ elfkernel.srcs = \
 	main.c \
 	raspberrypi.c \
 	tricks.s \
+	udata.c \
 	$(kernelversion.result)
 
 elfkernel.includes += \

@@ -43,6 +43,8 @@ extern int __swap_size_blocks;
 extern uint8_t* __progbase;
 extern uint8_t* __progtop;
 
+#define EMAGIC "bFAR"
+
 #define PROGBASE    ((uaddr_t)&__progbase)
 #define PROGLOAD    PROGBASE /* also data base */
 #define PROGTOP     ((uaddr_t)&__progtop)  /* Top of program */
@@ -73,6 +75,9 @@ extern uint8_t* __progtop;
 #define MAX_BLKDEV 1
 
 #define BOOTDEVICE 0x0002 /* hda2 */
+
+#define udata (*udata_ptr)
+extern struct u_data* udata_ptr;
 
 extern void platform_discard(void);
 
