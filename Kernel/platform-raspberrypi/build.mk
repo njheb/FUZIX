@@ -16,6 +16,7 @@ elfkernel.srcs = \
 	../devio.c \
 	../devsys.c \
 	../filesys.c \
+	../flat.c \
 	../inode.c \
 	../kdata.c \
 	../malloc.c \
@@ -24,6 +25,11 @@ elfkernel.srcs = \
 	../start.c \
 	../syscall_exec32.c \
 	../syscall_fs.c \
+	../syscall_fs2.c \
+	../syscall_fs3.c \
+	../syscall_level2.c \
+	../syscall_other.c \
+	../syscall_proc.c \
 	../timer.c \
 	../tty.c \
 	../usermem.c \

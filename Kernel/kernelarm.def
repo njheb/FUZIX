@@ -1,0 +1,33 @@
+// Keep these in sync with struct u_data!!
+// bools are 32 bits on ARM.
+#define U_DATA__U_PTAB_OFFSET        0   // struct p_tab*
+#define U_DATA__U_PAGE_OFFSET        4   // uint16_t
+#define U_DATA__U_PAGE2_OFFSET       6   // uint16_t
+#define U_DATA__U_INSYS_OFFSET       8   // bool
+#define U_DATA__U_CALLNO_OFFSET      12   // uint8_t
+#define U_DATA__U_SYSCALL_SP_OFFSET  16  // void *
+#define U_DATA__U_RETVAL_OFFSET      20   // int16_t
+#define U_DATA__U_ERROR_OFFSET       22  // int16_t
+#define U_DATA__U_SP_OFFSET          24  // void *
+#define U_DATA__U_ININTERRUPT_OFFSET 28  // bool
+#define U_DATA__U_CURSIG_OFFSET      32  // int8_t
+#define U_DATA__U_ARGN_OFFSET        34  // uint16_t
+#define U_DATA__U_ARGN1_OFFSET       36  // uint16_t
+#define U_DATA__U_ARGN2_OFFSET       38  // uint16_t
+#define U_DATA__U_ARGN3_OFFSET       40  // uint16_t
+#define U_DATA__U_ISP_OFFSET         44  // void * (initial stack pointer when _exec()ing)
+#define U_DATA__U_TOP_OFFSET         48  // uint16_t
+#define U_DATA__U_BREAK_OFFSET       50  // uint16_t
+#define U_DATA__U_SIGVEC_OFFSET      52  // table of function pointers (void *)
+
+// Keep these in sync with struct p_tab!!
+P_TAB__P_STATUS_OFFSET      = 0
+P_TAB__P_TTY_OFFSET         = 1
+P_TAB__P_PID_OFFSET         = 2
+P_TAB__P_PAGE_OFFSET        = 24
+
+P_RUNNING                   = 1            // value from include/kernel.h
+P_READY                     = 2            // value from include/kernel.h
+
+EAGAIN                      = 11           // value from include/kernel.h
+

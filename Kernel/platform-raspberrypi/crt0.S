@@ -42,10 +42,6 @@ __vectors:
 	b irq_handler  /* 0x18: IRQ interrupt */
 	b fiq_handler  /* 0x1c: FIQ interrupt */
 
-proc svc_handler
-	b svc_handler
-	movs pc, r14
-
 proc pabt_handler
 	mov r0, #4
 	b led_halt_and_blink
@@ -113,6 +109,10 @@ proc reset
 
 	mov r0, r2
 	b platform_init
+
+proc trap_reboot
+	cpsid if
+	b reset
 
 proc busy_wait
 	subs r0, r0, #1

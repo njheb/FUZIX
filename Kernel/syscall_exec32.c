@@ -340,3 +340,23 @@ char **wargs(char *ptr, struct s_argblk *argbuf, int *cnt)	// ptr is in userspac
 	return ((char **) argbase);
 }
 
+/*
+ *	Stub the FLAT-only allocator calls
+ */
+
+#if !defined(CONFIG_FLAT)
+
+arg_t _memalloc(void)
+{
+	udata.u_error = ENOMEM;
+	return -1;
+}
+
+arg_t _memfree(void)
+{
+	udata.u_error = ENOMEM;
+	return -1;
+}
+
+#endif
+
