@@ -39,8 +39,8 @@ typedef struct {
 typedef union {            /* this structure is endian dependent */
     clock_t  full;         /* 32-bit count of ticks since boot */
     struct {
-      uint16_t high;
       uint16_t low;         /* 16-bit count of ticks since boot */
+      uint16_t high;
     } h;
 } ticks_t;
 

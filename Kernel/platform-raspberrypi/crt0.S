@@ -23,7 +23,7 @@
 stack fiqstack, 256
 stack svcstack, 256
 stack abtstack, 256
-stack irqstack, 256
+stack irqstack, 4096
 stack fiqstack, 256
 stack undstack, 256
 stack sysstack, 4096
@@ -55,8 +55,11 @@ proc pabt_handler
 //	subs pc, r14, #8
 
 proc irq_handler
-	b irq_handler
-	subs pc, r14, #4
+	ldr sp, =irqstack_top
+	push {r0-r12, lr}
+	bl platform_interrupt
+	pop {r0-r12, lr}
+	subs pc, lr, #4
 
 proc fiq_handler
 	b fiq_handler
@@ -119,8 +122,7 @@ proc busy_wait
 proc di
 	/* Disable interrupts, returning the old interrupt state in r0. */
 	mrs r0, CPSR
-	orr r1, r0, #INTERRUPT_FLAGS
-	msr CPSR, r1
+	cpsid if
 	bx lr
 
 proc irqrestore
@@ -128,13 +130,11 @@ proc irqrestore
 	mrs r1, CPSR
 	bic r1, r1, #INTERRUPT_FLAGS
 	orr r1, r1, r0
-	msr CPSR, r1
+	msr CPSR_c, r1
 	bx lr
 
 proc ei
 	/* Enable interrupts unconditionally. */
-	mrs r0, CPSR
-	bic r0, r0, #INTERRUPT_FLAGS
-	msr CPSR, r0
+	cpsie if
 	bx lr
 	

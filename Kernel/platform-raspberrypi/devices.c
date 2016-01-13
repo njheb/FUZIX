@@ -8,7 +8,12 @@
 #include <printf.h>
 #include <timer.h>
 #include <devsd.h>
+#include "raspberrypi.h"
 #include "externs.h"
+
+#define TIMER_INTERVAL (1000000 / TICKSPERSEC)
+
+uint8_t need_resched;
 
 struct devsw dev_tab[] =  /* The device driver switch table */
 {
@@ -37,10 +42,16 @@ bool validdev(uint16_t dev)
         return true;
 }
 
-#if 0
 /* This is called with interrupts off. */
 void platform_interrupt(void)
 {
+	if (ARMIC.PENDING1 & (1<<ARMIC_IRQ1_TIMER3))
+	{
+		SYSTIMER.C3 += TIMER_INTERVAL;
+		SYSTIMER.CS = SYSTIMER_CS_M3;
+		timer_interrupt();
+	}
+#if 0
 	switch (last_interrupt)
 	{
 		case INTERRUPT_WDT:
@@ -51,11 +62,22 @@ void platform_interrupt(void)
 			tty_interrupt();
 			break;
 	}
-}
 #endif
+}
 
 void device_init(void)
 {
+	/* The ARM timer runs at a variable rate due to power control. GPU timer 3
+	 * is apparently reserved for OS use and runs at a useful 1MHz. */
+
+	SYSTIMER.C3 = SYSTIMER.CLO + TIMER_INTERVAL;
+	SYSTIMER.CS = SYSTIMER_CS_M3;
+	while (!SYSTIMER.CS & SYSTIMER_CS_M3)
+		;
+	SYSTIMER.CS = SYSTIMER_CS_M3;
+	SYSTIMER.C3 += TIMER_INTERVAL;
+	ARMIC.ENABLE1 = 1<<ARMIC_IRQ1_TIMER3;
+
 	devsd_init();
 }
 

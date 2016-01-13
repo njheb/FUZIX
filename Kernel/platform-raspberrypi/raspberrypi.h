@@ -436,6 +436,119 @@ extern int mbox_get_clock_rate(int clockid);
 extern int mbox_get_power_state(int deviceid);
 extern void mbox_set_power_state(int deviceid, bool state);
 
+extern struct
+{
+	volatile uint32_t CS;  /* 00 */
+	volatile uint32_t CLO; /* 04 */
+	volatile uint32_t CHI; /* 08 */
+	volatile uint32_t C0;  /* 0c */
+	volatile uint32_t C1;  /* 10 */
+	volatile uint32_t C2;  /* 14 */
+	volatile uint32_t C3;  /* 18 */
+}
+SYSTIMER;
+
+enum
+{
+	SYSTIMER_CS_M0 = 1<<0,
+	SYSTIMER_CS_M1 = 1<<1,
+	SYSTIMER_CS_M2 = 1<<2,
+	SYSTIMER_CS_M3 = 1<<3,
+};
+
+extern struct
+{
+	volatile uint32_t PENDINGB; /* 00 */
+	volatile uint32_t PENDING1; /* 04 */
+	volatile uint32_t PENDING2; /* 08 */
+	volatile uint32_t FIQ;      /* 0c */
+	volatile uint32_t ENABLE1;  /* 10 */
+	volatile uint32_t ENABLE2;  /* 14 */
+	volatile uint32_t ENABLEB;  /* 18 */
+	volatile uint32_t DISABLE1; /* 1c */
+	volatile uint32_t DISABLE2; /* 20 */
+	volatile uint32_t DISABLEB; /* 24 */
+}
+ARMIC;
+
+enum
+{
+	ARMIC_IRQ1_TIMER0          = 0,
+	ARMIC_IRQ1_TIMER1          = 1,
+	ARMIC_IRQ1_TIMER2          = 2,
+	ARMIC_IRQ1_TIMER3          = 3,
+	ARMIC_IRQ1_CODEC0          = 4,
+	ARMIC_IRQ1_CODEC1          = 5,
+	ARMIC_IRQ1_CODEC2          = 6,
+	ARMIC_IRQ1_JPEG            = 7,
+	ARMIC_IRQ1_ISP             = 8,
+	ARMIC_IRQ1_USB             = 9,
+	ARMIC_IRQ1_3D              = 10,
+	ARMIC_IRQ1_TRANSPOSER      = 11,
+	ARMIC_IRQ1_MULTICORESYNC0  = 12,
+	ARMIC_IRQ1_MULTICORESYNC1  = 13,
+	ARMIC_IRQ1_MULTICORESYNC2  = 14,
+	ARMIC_IRQ1_MULTICORESYNC3  = 15,
+	ARMIC_IRQ1_DMA0            = 16,
+	ARMIC_IRQ1_DMA1            = 17,
+	ARMIC_IRQ1_DMA2            = 18,
+	ARMIC_IRQ1_DMA3            = 19,
+	ARMIC_IRQ1_DMA4            = 20,
+	ARMIC_IRQ1_DMA5            = 21,
+	ARMIC_IRQ1_DMA6            = 22,
+	ARMIC_IRQ1_DMA7            = 23,
+	ARMIC_IRQ1_DMA8            = 24,
+	ARMIC_IRQ1_DMA9            = 25,
+	ARMIC_IRQ1_DMA10           = 26,
+	ARMIC_IRQ1_DMA11           = 27,
+	ARMIC_IRQ1_DMA12           = 28,
+	ARMIC_IRQ1_AUX             = 29,
+	ARMIC_IRQ1_ARM             = 30,
+	ARMIC_IRQ1_VPUDMA          = 31,
+
+	ARMIC_IRQ2_HOSTPORT        = 0,
+	ARMIC_IRQ2_VIDEOSCALER     = 1,
+	ARMIC_IRQ2_CCP2TX          = 2,
+	ARMIC_IRQ2_SDC             = 3,
+	ARMIC_IRQ2_DSI0            = 4,
+	ARMIC_IRQ2_AVE             = 5,
+	ARMIC_IRQ2_CAM0            = 6,
+	ARMIC_IRQ2_CAM1            = 7,
+	ARMIC_IRQ2_HDMI0           = 8,
+	ARMIC_IRQ2_HDMI1           = 9,
+	ARMIC_IRQ2_PIXELVALVE1     = 10,
+	ARMIC_IRQ2_I2CSPISLV       = 11,
+	ARMIC_IRQ2_DSI1            = 12,
+	ARMIC_IRQ2_PWA0            = 13,
+	ARMIC_IRQ2_PWA1            = 14,
+	ARMIC_IRQ2_CPR             = 15,
+	ARMIC_IRQ2_SMI             = 16,
+	ARMIC_IRQ2_GPIO0           = 17,
+	ARMIC_IRQ2_GPIO1           = 18,
+	ARMIC_IRQ2_GPIO2           = 19,
+	ARMIC_IRQ2_GPIO3           = 20,
+	ARMIC_IRQ2_I2C             = 21,
+	ARMIC_IRQ2_SPI             = 22,
+	ARMIC_IRQ2_I2SPCM          = 23,
+	ARMIC_IRQ2_SDIO            = 24,
+	ARMIC_IRQ2_UART            = 25,
+	ARMIC_IRQ2_SLIMBUS         = 26,
+	ARMIC_IRQ2_VEC             = 27,
+	ARMIC_IRQ2_CPG             = 28,
+	ARMIC_IRQ2_RNG             = 29,
+	ARMIC_IRQ2_ARASANSDIO      = 30,
+	ARMIC_IRQ2_AVSPMON         = 31,
+
+	ARMIC_IRQB_ARM_TIMER       = 0,
+	ARMIC_IRQB_ARM_MAILBOX     = 1,
+	ARMIC_IRQB_ARM_DOORBELL_0  = 2,
+	ARMIC_IRQB_ARM_DOORBELL_1  = 3,
+	ARMIC_IRQB_VPU0_HALTED     = 4,
+	ARMIC_IRQB_VPU1_HALTED     = 5,
+	ARMIC_IRQB_ILLEGAL_TYPE0   = 6,
+	ARMIC_IRQB_ILLEGAL_TYPE1   = 7,
+};
+
 #endif
 
 

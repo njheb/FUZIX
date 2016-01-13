@@ -38,7 +38,7 @@ extern int __swap_base;
 extern int __swap_top;
 extern int __swap_size_blocks;
 
-#define TICKSPERSEC 64   /* Ticks per second */
+#define TICKSPERSEC 100   /* Ticks per second */
 
 extern uint8_t* __progbase;
 extern uint8_t* __progtop;
