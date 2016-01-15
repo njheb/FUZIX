@@ -168,7 +168,9 @@ endif
 
 ifneq ($$(filter %.elf, $$($1.result)),)
 
-$1.libgcc ?= $(shell $(TARGETCC) --print-libgcc)
+$1.libgcc ?= $$(shell $$(TARGETCC) \
+	$$(targetgcc.cflags) $$($$($1.class).cflags) $$($1.cflags) \
+	--print-libgcc)
 
 $$($1.result): $$($1.objs) \
 		$$($$($1.class).extradeps) $$($1.extradeps) $$($1.libgcc) \
