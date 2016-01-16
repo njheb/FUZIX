@@ -54,6 +54,7 @@ elfkernel.cflags += \
 	-fno-common \
 	-mno-unaligned-access \
 	-std=gnu99 \
+	-mfloat-abi=hard \
 	-g -gdwarf-2 \
 
 elfkernel.asflags += \
