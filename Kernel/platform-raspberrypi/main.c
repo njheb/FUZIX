@@ -144,7 +144,7 @@ void platform_init(uint8_t* atags)
 	 * pagemap_init().
 	 */
 
-	set_udata_for_page(1);
+	udata_ptr = get_udata_for_page(1);
 	memset(&udata, 0, sizeof(udata));
 	udata.u_page = 1;
 
@@ -177,12 +177,52 @@ void trap_monitor(void)
 	led_halt_and_blink(3);
 }
 
-void dabt_handler(void)
+void unexpected_handler_c(const char* reason, uint32_t address)
+{
+	kprintf("panic: unexpected %s at pc 0x%x\n", reason, address);
+	for (;;);
+}
+
+void dabt_handler_c(void)
 {
 	uint32_t insn = (uint32_t)__builtin_return_address(0) - 8;
 	uint32_t reason = mrc(15, 0, 5, 0, 0) & 0xf;
 	uint32_t fault_addr = mrc(15, 0, 6, 0, 0);
-	kprintf("data abort for address %x at %x because %x\n", fault_addr, insn, reason);
+	kprintf("abort for address %x at %x because %x\n", fault_addr, insn, reason);
 	for (;;);
+}
+
+struct registers
+{
+	uint32_t r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, sp, lr;
+	uint32_t pc, spsr;
+};
+
+void dump_user_registers_c(struct registers* r)
+{
+	kprintf("User mode registers:\n"
+	        "spsr: %x %c%c%c%c%c %c%c mode: %x\n"
+	        " r0: %x  r4: %x  r8: %x r12: %x\n"
+			" r1: %x  r5: %x  r9: %x  sp: %x\n"
+			" r2: %x  r6: %x r10: %x  lr: %x\n"
+			" r3: %x  r7: %x r11: %x  pc: %x\n",
+			r->spsr,
+			(r->spsr & (1<<31)) ? 'N' : 'n',
+			(r->spsr & (1<<30)) ? 'Z' : 'z',
+			(r->spsr & (1<<29)) ? 'C' : 'c',
+			(r->spsr & (1<<28)) ? 'V' : 'v',
+			(r->spsr & (1<<27)) ? 'Q' : 'q',
+			(r->spsr & (1<<7)) ? 'i' : 'I',
+			(r->spsr & (1<<6)) ? 'f' : 'F',
+			r->spsr & 0x1f,
+			r->r0, r->r4, r->r8, r->r12,
+			r->r1, r->r5, r->r9, r->sp,
+			r->r2, r->r6, r->r10, r->lr,
+			r->r3, r->r7, r->r11, r->pc);
+}
+
+void print_r0(uint32_t r0)
+{
+	kprintf("<%x>\n", r0);
 }
 

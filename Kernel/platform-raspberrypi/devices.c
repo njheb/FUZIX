@@ -11,7 +11,8 @@
 #include "raspberrypi.h"
 #include "externs.h"
 
-#define TIMER_INTERVAL (1000000 / TICKSPERSEC)
+#define TIMER_INTERVAL 1000000
+//#define TIMER_INTERVAL (1000000 / TICKSPERSEC)
 
 uint8_t need_resched;
 

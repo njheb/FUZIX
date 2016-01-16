@@ -14,6 +14,9 @@ _start:
 	.word 0, 0, 0, 0, 0, 0    // filler
 
 1:
+	mov r0, #0
+	mov r1, #1
+
 	/* Wipe BSS.*/
 
 	ldr r0, =__bss_start
@@ -34,7 +37,7 @@ _start:
 
 	mov r2, sp
 	ldr r3, =environ
-	str r2, [r3, #0]
+	str r2, [r3]
 
 	/* When main returns, jump to _exit. */
 

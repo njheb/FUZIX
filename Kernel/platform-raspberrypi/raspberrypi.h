@@ -378,6 +378,8 @@ extern void gpio_set_pin_func(int pin, int func, int mode);
 extern void gpio_set_output_pin(int pin, bool value);
 extern void led_init(void);
 extern void led_set(bool value);
+extern void led_on(void);
+extern void led_off(void);
 extern void led_halt_and_blink(int count);
 
 enum

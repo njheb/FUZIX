@@ -32,7 +32,8 @@ static void write_call(int n)
   /* On entry, the four parameters are in r0-r3. The syscall number is
    * in r4. */
 
-  fprintf(fp, "\tmov r4, #%d\n"
+  fprintf(fp, "\tpush {r4}\n"
+              "\tmov r4, #%d\n"
               "\tb _syscall\n",
 			  n);
   fclose(fp);

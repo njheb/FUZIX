@@ -50,6 +50,16 @@ void led_set(bool value)
 	gpio_set_output_pin(16, !value);
 }
 
+void led_on(void)
+{
+	led_set(true);
+}
+
+void led_off(void)
+{
+	led_set(false);
+}
+
 void led_halt_and_blink(int count)
 {
 	const int d = 0x1000000;

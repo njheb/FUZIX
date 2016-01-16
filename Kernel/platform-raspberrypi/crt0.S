@@ -9,19 +9,7 @@
 	\n\()_top = .
 .endm
 
-#define INTERRUPT_FLAGS ((1<<6) | (1<<7))
-#define MODE_MASK (0x1f<<0)
-
-#define MODE_USER 0x10
-#define MODE_FIQ  0x11
-#define MODE_IRQ  0x12
-#define MODE_SVC  0x13
-#define MODE_ABT  0x17
-#define MODE_UND  0x1b
-#define MODE_SYS  0x1f
-
 stack fiqstack, 256
-stack svcstack, 256
 stack abtstack, 256
 stack irqstack, 4096
 stack fiqstack, 256
@@ -43,12 +31,18 @@ __vectors:
 	b fiq_handler  /* 0x1c: FIQ interrupt */
 
 proc pabt_handler
-	mov r0, #4
-	b led_halt_and_blink
-	subs pc, r14, #4
+	cpsid if
+	ldr sp, =irqstack_top
+	ldr r0, =1f
+	sub r1, lr, #4
+	b unexpected_handler_c
+	//subs pc, r14, #4
+1:	.string "physical abort"
 
-//proc dabt_handler
-//	subs pc, r14, #8
+proc dabt_handler
+	cpsid if
+	ldr sp, =irqstack_top
+	b dabt_handler_c
 
 proc irq_handler
 	ldr sp, =irqstack_top
@@ -58,12 +52,22 @@ proc irq_handler
 	subs pc, lr, #4
 
 proc fiq_handler
-	b fiq_handler
-	subs pc, r14, #4
+	cpsid if
+	ldr sp, =irqstack_top
+	ldr r0, =1f
+	sub r1, lr, #4
+	b unexpected_handler_c
+	//subs pc, r14, #4
+1:	.string "FIQ"
 
 proc und_handler
-	b und_handler
-	movs pc, r14
+	cpsid if
+	ldr sp, =irqstack_top
+	ldr r0, =1f
+	mov r1, lr
+	b unexpected_handler_c
+	//movs pc, r14
+1:	.string "undefined instruction"
 
 proc reset
 	/* On entry:
@@ -74,45 +78,19 @@ proc reset
 	 * r2 gets passed through to platform_main so it can look at it.
 	 */
 
-	/* Set up stacks. The ARM remembers the stack pointer for each processor
-	 * mode. */
-
-	mrs r1, CPSR
-	bic r1, r1, #MODE_MASK
-	orr r1, r1, #INTERRUPT_FLAGS
-
-	orr r3, r1, #MODE_FIQ
-	msr CPSR, r3
-	ldr sp, =fiqstack_top
-	
-	orr r3, r1, #MODE_IRQ
-	msr CPSR, r3
-	ldr sp, =irqstack_top
-	
-	orr r3, r1, #MODE_SVC
-	msr CPSR, r3
-	ldr sp, =svcstack_top
-	
-	orr r3, r1, #MODE_ABT
-	msr CPSR, r3
-	ldr sp, =abtstack_top
-	
-	orr r3, r1, #MODE_UND
-	msr CPSR, r3
-	ldr sp, =undstack_top
-	
-	orr r3, r1, #MODE_SYS
-	msr CPSR, r3
+	cpsid if, #MODE_SVC
 	ldr sp, =sysstack_top
 	
-	/* Now call into C. */
-
 	mov r0, r2
 	b platform_init
 
 proc trap_reboot
 	cpsid if
-	b reset
+	ldr sp, =irqstack_top
+	ldr r0, =1f
+	mov r1, lr
+	b unexpected_handler_c
+1:	.string "reset"
 
 proc busy_wait
 	subs r0, r0, #1
@@ -137,4 +115,4 @@ proc ei
 	/* Enable interrupts unconditionally. */
 	cpsie if
 	bx lr
-	
+
