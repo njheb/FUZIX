@@ -24,9 +24,9 @@ static void write_call(int n)
 
   if (syscall_args[n] == VARARGS)
   {
-	/* Varargs syscalls have the first argument in r0 and the others on
-	 * the stack. We support up to four parameters. */
-	fprintf(fp, "\tldmia sp, {r1, r2, r3}\n");
+	/* On ARM, the first four varargs parameters are passed in
+	 * registers, so they're already exactly where we want them ---
+	 * no extra work to do! */
   }
 
   /* On entry, the four parameters are in r0-r3. The syscall number is
