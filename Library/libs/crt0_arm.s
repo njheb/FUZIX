@@ -14,8 +14,10 @@ _start:
 	.word 0, 0, 0, 0, 0, 0    // filler
 
 1:
-	mov r0, #0
-	mov r1, #1
+	/* Stack adjustment. For some reason Fuzix has two quads worth of dummy
+	 * values here (m68k stack frame, maybe?). */
+
+	add sp, sp, #8
 
 	/* Wipe BSS.*/
 
