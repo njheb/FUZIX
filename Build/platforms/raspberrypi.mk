@@ -85,6 +85,7 @@ FILESYSTEM = \
 	/bin/factor             0755 $(util-factor.result) \
 	/bin/false              0755 $(util-false.result) \
 	/bin/fdisk              0755 $(util-fdisk.result) \
+	/bin/fforth             0755 $(util-fforth.result) \
 	/bin/fgrep              0755 $(util-fgrep.result) \
 	/bin/fsck               0755 $(util-fsck.result) \
 	/bin/grep               0755 $(util-grep.result) \
