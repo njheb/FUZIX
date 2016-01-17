@@ -37,7 +37,8 @@ void tty_sleeping(uint8_t minor)
 
 ttyready_t tty_writeready(uint8_t minor)
 {
-	return (UART0.FR & (1<<5)) ? TTY_READY_NOW : TTY_READY_SOON;
+	/* TODO: change this to TTY_READY_LATER once task switching works */
+	return (UART0.FR & (1<<5)) ? TTY_READY_SOON : TTY_READY_NOW;
 }
 
 void tty_setup(uint8_t minor)
