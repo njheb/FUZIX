@@ -10,5 +10,7 @@ extern void busy_wait(int delay);
 extern void* get_udata_for_page(int page);
 extern void* get_svc_stack_for_page(int page);
 
+extern void tty_interrupt(void);
+
 #endif
 

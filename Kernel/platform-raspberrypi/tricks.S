@@ -7,7 +7,19 @@ proc switchin
 	mov r0, #1
 	b led_halt_and_blink
 
+.globl switchin
 proc switchout
+	cpsid if                    // interrupts off
+	mov r0, #0                  // set return code
+	push {r0-r12, lr}           // save all registers (except sp)
+
+	ldr r0, =udata_ptr
+	ldr r0, [r0]
+	str sp, [r0, #U_DATA__U_SP_OFFSET] // save sp
+
+	ldr sp, =sysstack_top       // switch to scheduler stack
+	bl getproc                  // find a new process to run
+
 	mov r0, #2
 	b led_halt_and_blink
 
@@ -44,8 +56,8 @@ proc doexec
 	bx r4                    // and go
 
 proc platform_idle
-	mov r0, #3
-	b led_halt_and_blink
+	mcr p15, 0, r0, c7, c0, 4 // wait for interrupt
+	bx lr
 
 proc dofork
 	mov r0, #4
@@ -86,6 +98,14 @@ swi0:                        // swi 0 is a syscall
 	/* Okay, we finally have some registers spare. */
 
 	mov r4, sp               // r4 becomes our new udata ptr
+
+	ldr sp, =irqstack_top    // just for the next call
+	push {lr}
+	ldr r0, [r4, #U_DATA__U_PAGE_OFFSET]
+	bl get_svc_stack_for_page
+	pop {lr}
+	mov sp, r0               // switch to the process' kernel stack
+
 	ldr sp, [r4, #U_DATA__U_SP_OFFSET] // load the kernel stack
 	srsfd sp!, #MODE_SVC     // save lr, spsr onto it
 	stmfd sp!, {sp, lr}^     // ...and the user sp and lr

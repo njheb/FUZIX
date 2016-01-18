@@ -9,11 +9,7 @@
 	\n\()_top = .
 .endm
 
-stack fiqstack, 256
-stack abtstack, 256
 stack irqstack, 4096
-stack fiqstack, 256
-stack undstack, 256
 stack sysstack, 4096
 
 .section .vectors, "ax"
