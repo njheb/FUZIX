@@ -344,6 +344,43 @@ extern struct
 }
 UART0;
 
+enum
+{
+	UART_LCRH_BRK     = 1<<0,
+	UART_LCRH_PEN     = 1<<1,
+	UART_LCRH_EPS     = 1<<2,
+	UART_LCRH_STP2    = 1<<3,
+	UART_LCRH_FEN     = 1<<4,
+	UART_LCRH_WLEN_00 = 0<<5,
+	UART_LCRH_WLEN_01 = 1<<5,
+	UART_LCRH_WLEN_10 = 2<<5,
+	UART_LCRH_WLEN_11 = 3<<5,
+	UART_LCRH_SPS     = 1<<7,
+	
+	UART_CR_UARTEN    = 1<<0,
+	UART_CR_LBE       = 1<<7,
+	UART_CR_TXE       = 1<<8,
+	UART_CR_RXE       = 1<<9,
+	UART_CR_RTS       = 1<<11,
+	UART_CR_RTSEN     = 1<<14,
+	UART_CR_CTSEN     = 1<<15,
+
+	UART_FR_BUSY      = 1<<3,
+	UART_FR_RXFE      = 1<<4,
+	UART_FR_TXFF      = 1<<5,
+	UART_FR_RXFF      = 1<<6,
+	UART_FR_TXFE      = 1<<7,
+
+	UART_IRQ_CTSMI    = 1<<1,
+	UART_IRQ_RXI      = 1<<4,
+	UART_IRQ_TXI      = 1<<5,
+	UART_IRQ_RTI      = 1<<6,
+	UART_IRQ_FEI      = 1<<7,
+	UART_IRQ_PEI      = 1<<8,
+	UART_IRQ_BEI      = 1<<9,
+	UART_IRQ_OEI      = 1<<10,
+};
+
 extern struct
 {
 	volatile uint32_t READ;    /* 00 */

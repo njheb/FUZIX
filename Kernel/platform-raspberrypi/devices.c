@@ -52,6 +52,10 @@ void platform_interrupt(void)
 		SYSTIMER.CS = SYSTIMER_CS_M3;
 		timer_interrupt();
 	}
+
+	if (ARMIC.PENDING2 & (1<<ARMIC_IRQ2_UART))
+		tty_interrupt();
+
 #if 0
 	switch (last_interrupt)
 	{
