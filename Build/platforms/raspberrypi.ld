@@ -18,14 +18,15 @@ SECTIONS
 		*(.data*)
 		*(.rodata*)
 		*(.eh_frame*)
+		. = ALIGN(8);
 		__data_end = .;
 	} > USER
 	__data_len = (__data_end - __data_start);
 
 	.bss : {
-		. = ALIGN(8);
 		__bss_start = .;
 		*(.bss* COMMON)
+		. = ALIGN(8);
 		__bss_end = .;
 	} > USER
 	__bss_len = (__bss_end - __bss_start);

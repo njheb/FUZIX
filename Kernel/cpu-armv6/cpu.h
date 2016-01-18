@@ -57,8 +57,8 @@ typedef union {            /* this structure is endian dependent */
 /* ARM requires aligned accesses (but it least it traps if you get it wrong).
  */
 
-#define ALIGNUP(v)   alignup(v, 4)
-#define ALIGNDOWN(v) aligndown(v, 4)
+#define ALIGNUP(v)   alignup(v, 8)
+#define ALIGNDOWN(v) aligndown(v, 8)
 
 /* Sane behaviour for unused parameters */
 #define used(x)
