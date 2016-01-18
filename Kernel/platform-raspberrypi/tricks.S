@@ -4,10 +4,12 @@
 .arch armv6
 
 proc switchin
-	b switchin
+	mov r0, #1
+	b led_halt_and_blink
 
 proc switchout
-	b switchout
+	mov r0, #2
+	b led_halt_and_blink
 
 proc doexec
 	/* On entry, r0 contains the start address. */
@@ -15,8 +17,9 @@ proc doexec
 	mov r4, r0               // r4 is now the entry address
 	bl led_on
 
-	mcr p15, 0, r0, cr7, cr5, 0 // invalidate instruction cache
-	mcr p15, 0, r0, cr7, cr5, 4 // flush prefetch buffer
+	mcr p15, 0, r0, cr7, cr10, 0 // clean data cache
+	mcr p15, 0, r0, cr7, cr5, 0  // invalidate instruction cache
+	mcr p15, 0, r0, cr7, cr5, 4  // flush prefetch buffer
 
 	cpsid if                 // interrupts off
 
@@ -41,10 +44,12 @@ proc doexec
 	bx r4                    // and go
 
 proc platform_idle
-	b platform_idle
+	mov r0, #3
+	b led_halt_and_blink
 
 proc dofork
-	b dofork
+	mov r0, #4
+	b led_halt_and_blink
 
 proc svc_handler
 	/*
