@@ -30,7 +30,7 @@ void set_tlb_entry(uint32_t virtual, uint32_t physical, uint32_t flags)
 	int page = virtual / MEGABYTE;
 	tlbtable[page] = physical | flags
 		| (3<<10) /* AP = 3 (global access) */
-		| (2<<0)  /* 1MB page */
+		| 0x12    /* 1MB page */
 		;
 }
 
@@ -138,13 +138,10 @@ void platform_init(uint8_t* atags)
 	ramsize = mbox_get_arm_memory() / 1024;
 	procmem = ramsize - 1024; /* reserve 1MB for the kernel */
 
-	/* We're actually in a process (which will eventually exec init). We need
-	 * to make sure that the udata pointer is preset to the right block. We've
-	 * ensured that init will go in page 1, by means of the nasty logic in
-	 * pagemap_init().
+	/* Make sure the udata block is sane. Note that We've ensured that init
+	 * will go in page 1, by means of the nasty logic in pagemap_init().
 	 */
 
-	udata_ptr = get_udata_for_page(1);
 	memset(&udata, 0, sizeof(udata));
 	udata.u_page = 1;
 

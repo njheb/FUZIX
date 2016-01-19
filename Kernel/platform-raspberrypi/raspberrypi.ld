@@ -1,3 +1,5 @@
+#include "raspberrypi.ld.h"
+
 ENTRY(reset)
 
 PROVIDE (SYSTIMER        = 0x3f003000);
@@ -9,9 +11,10 @@ PROVIDE (ALTMMC          = 0x3f202000);
 PROVIDE (EMMC            = 0x3f300000);
 
 PROVIDE (__kerneltop     = 0x00100000);
-PROVIDE (__progbase      = 0x80000000);
-PROVIDE (__progtop       = 0x80100000);
-PROVIDE (udata           = __progbase);
+PROVIDE (__progbase      = USER_BASE);
+PROVIDE (__progtop       = USER_BASE + USER_SIZE);
+PROVIDE (udata           = UDATA_BASE);
+PROVIDE (udatatop        = UDATA_BASE + UDATA_SIZE);
 
 MEMORY {
 	LOWRAM : ORIGIN = 0x0000, LENGTH = 0x8000

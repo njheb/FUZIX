@@ -9,8 +9,7 @@ proc switchout
 	mov r0, #0                  // set return code
 	push {r0-r12, lr}           // save all registers (except sp)
 
-	ldr r5, =udata_ptr          // belongs to old process
-	ldr r5, [r5]
+	ldr r5, =udata              // belongs to old process
 	str sp, [r5, #U_DATA__U_SP_OFFSET] // save sp
 
 	ldr sp, =schedstack_top     // switch to scheduler stack
@@ -19,12 +18,42 @@ switchin:
 	cpsid if
 	bl page_in_new_process
 
-	ldr r5, =udata_ptr          // belongs to old process
-	ldr r5, [r5]
+	/* udata now belongs to the new process. */
+
 	ldr sp, [r5, #U_DATA__U_SP_OFFSET] // load old sp
 
 	cpsie if                    // interrupts on
 	pop {r0-r12, pc}            // restore registers and return
+
+
+proc dofork
+#if 0
+	/* On entry, r0 contains the ptab pointer of the new process. */
+
+	cpsid if
+
+	/* dofork suspends the parent; the scheduler will resume it again with
+	 * switchin. So we need to save the parent's state is if it had been
+	 * saved with switchout.
+	 */
+
+	mov r1, r0
+	ldrb r0, [r1, #P_TAB__P_PID_OFFSET] // load child's pid
+	push {r0-r12, lr}           // save all registers (except sp)
+
+	ldr r5, =udata
+	str sp, [r5, #U_DATA__U_SP_OFFSET]
+
+	/* Now call the reoutine that actually does the work. */
+
+	ldr sp, =schedstack_top
+	mov r0, r1
+	bl copy_current_to_new_page
+#endif
+
+	mov r0, #4
+	b led_halt_and_blink
+
 
 proc doexec
 	/* On entry, r0 contains the start address. */
@@ -38,16 +67,13 @@ proc doexec
 
 	cpsid if                 // interrupts off
 
-	ldr r5, =udata_ptr
-	ldr r5, [r5]             // r5 is now the new process's udata
+	ldr r5, =udata           // of the new process
 
 	mov r0, #0
 	str r0, [r5, #U_DATA__U_INSYS_OFFSET]
 
 	/* Initialise the process' kernel stack. */
 
-	ldrh r0, [r5, #U_DATA__U_PAGE_OFFSET]
-	bl get_svc_stack_for_page
 	str r0, [r5, #U_DATA__U_SP_OFFSET]
 
 	/* ...and now the process' user registers. */
@@ -58,13 +84,11 @@ proc doexec
 
 	bx r4                    // and go
 
+
 proc platform_idle
 	mcr p15, 0, r0, c7, c0, 4 // wait for interrupt
 	bx lr
 
-proc dofork
-	mov r0, #4
-	b led_halt_and_blink
 
 proc svc_handler
 	/*
@@ -89,8 +113,7 @@ swi0:                        // swi 0 is a syscall
 	/* This is a system call. Before doing anything else, save the sycall
 	 * parameters. */
 
-	ldr sp, =udata_ptr
-	ldr sp, [sp]
+	ldr sp, =udata
 
 	strb r4, [sp, #U_DATA__U_CALLNO_OFFSET]
 	str r0, [sp, #U_DATA__U_ARGN_OFFSET]
@@ -102,14 +125,7 @@ swi0:                        // swi 0 is a syscall
 
 	mov r4, sp               // r4 becomes our new udata ptr
 
-	ldr sp, =irqstack_top    // just for the next call
-	push {lr}
-	ldr r0, [r4, #U_DATA__U_PAGE_OFFSET]
-	bl get_svc_stack_for_page
-	pop {lr}
-	mov sp, r0               // switch to the process' kernel stack
-
-	ldr sp, [r4, #U_DATA__U_SP_OFFSET] // load the kernel stack
+	ldr sp, =udatatop        // this process' kernel stack
 	srsfd sp!, #MODE_SVC     // save lr, spsr onto it
 	stmfd sp!, {sp, lr}^     // ...and the user sp and lr
 

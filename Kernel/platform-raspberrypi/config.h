@@ -76,8 +76,5 @@ extern uint8_t* __progtop;
 
 #define BOOTDEVICE 0x0002 /* hda2 */
 
-#define udata (*udata_ptr)
-extern struct u_data* udata_ptr;
-
 extern void platform_discard(void);
 
