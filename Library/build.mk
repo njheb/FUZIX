@@ -128,6 +128,7 @@ libc-functions.localsrcs += \
 	rewind.c \
 	rindex.c \
 	scanf.c \
+	seekdir.c \
 	setbuffer.c \
 	setenv.c \
 	setlocale.c \
@@ -152,6 +153,7 @@ libc-functions.localsrcs += \
 	tcflush.c \
 	tcgetattr.c \
 	tcsetattr.c \
+	telldir.c \
 	time.c \
 	tmpfile.c \
 	tmpnam.c \
