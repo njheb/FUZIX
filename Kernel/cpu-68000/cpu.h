@@ -69,3 +69,5 @@ typedef union {            /* this structure is endian dependent */
 register struct u_data *udata_ptr asm ("a5");
 
 #define udata (*udata_ptr)
+
+#define BIG_ENDIAN
