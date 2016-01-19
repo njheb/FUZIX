@@ -123,6 +123,7 @@ FILESYSTEM = \
 	/bin/sum                0755 $(util-sum.result) \
 	/bin/sync               0755 $(util-sync.result) \
 	/bin/tail               0755 $(util-tail.result) \
+	/bin/tar                0755 $(util-tar.result) \
 	/bin/tee                0755 $(util-tee.result) \
 	/bin/touch              0755 $(util-touch.result) \
 	/bin/tr                 0755 $(util-tr.result) \
