@@ -36,9 +36,6 @@ From UZI by Doug Braun and UZI280 by Stefan Nitschke.
 #define ALIGNDOWN(v) (v)
 #endif
 
-#ifndef READ_UNALIGNED_16
-#endif
-
 #if defined(CONFIG_NO_UNALIGNED_ACCESSES)
 #define READ_UNALIGNED_16(addr)         read_unaligned_16((const uint8_t*) (addr))
 #define READ_UNALIGNED_32(addr)         read_unaligned_32((const uint8_t*) (addr))
