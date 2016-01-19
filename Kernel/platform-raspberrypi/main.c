@@ -11,28 +11,7 @@ extern uint8_t __vectors;
 extern uint8_t __vectorsstart;
 extern uint8_t __vectorsend;
 
-#define MEGABYTE (1024*1024)
-extern volatile uint32_t tlbtable[4096];
-
-#define CACHED (1<<3)
-#define BUFFERED (1<<2)
-
-#define CR_M (1<<0) /* MMU on */
-#define CR_A (1<<1) /* Strict alignment checking */
-#define CR_C (1<<2) /* L1 data cache on */
-#define CR_Z (1<<11) /* Branch flow prediction on */
-#define CR_I (1<<12) /* L1 instruction cache on */
-
 uaddr_t ramtop;
-
-void set_tlb_entry(uint32_t virtual, uint32_t physical, uint32_t flags)
-{
-	int page = virtual / MEGABYTE;
-	tlbtable[page] = physical | flags
-		| (3<<10) /* AP = 3 (global access) */
-		| 0x12    /* 1MB page */
-		;
-}
 
 void jtag_init(void)
 {
@@ -41,34 +20,6 @@ void jtag_init(void)
 	gpio_set_pin_func(24, GPIO_FUNC_ALT4, GPIO_PULL_OFF); /* TDO */
 	gpio_set_pin_func(25, GPIO_FUNC_ALT4, GPIO_PULL_OFF); /* TCK */
 	gpio_set_pin_func(27, GPIO_FUNC_ALT4, GPIO_PULL_OFF); /* TMS */
-}
-
-static void change_control_register(uint32_t set, uint32_t reset)
-{
-	uint32_t value = mrc(15, 0, 1, 0, 0);
-	value |= set;
-	value &= ~reset;
-	mcr(15, 0, 1, 0, 0, value);
-}
-
-static void enable_mmu(void)
-{
-	mcr(15, 0, 3, 0,  0, 0x3); /* domain */
-	mcr(15, 0, 2, 0,  0, tlbtable); /* tlb base register 0 */
-	mcr(15, 0, 2, 0,  1, tlbtable); /* tlb base register 1 */
-
-	change_control_register(CR_A, CR_M|CR_C|CR_I);
-
-	invalidate_data_cache();
-	invalidate_insn_cache();
-	invalidate_tlb();
-
-	change_control_register(CR_M|CR_C|CR_I, 0);
-}
-
-static inline void tlb_flush(void* address)
-{
-	mcr(15, 0, 8, 7, 1, address);
 }
 
 void pagemap_init(void)
@@ -123,7 +74,7 @@ void platform_init(uint8_t* atags)
 	}
 
 	/* ...and our user address space. */
-	set_tlb_entry(0x80000000, 0x00100000, CACHED|BUFFERED);
+	set_tlb_entry((uint32_t)&__progbase, 1*MEGABYTE, CACHED|BUFFERED);
 	enable_mmu();
 
 	/* Initialise system peripherals. */

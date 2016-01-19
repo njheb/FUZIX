@@ -7,7 +7,7 @@
 proc switchout
 	cpsid if                    // interrupts off
 	mov r0, #0                  // set return code
-	push {r0-r12, lr}           // save all registers (except sp)
+	push {r0, r4-r12, lr}       // save persistent registers (except sp)
 
 	ldr r5, =udata              // belongs to old process
 	str sp, [r5, #U_DATA__U_SP_OFFSET] // save sp
@@ -16,18 +16,19 @@ proc switchout
 	bl getproc
 switchin:
 	cpsid if
+	ldr sp, =schedstack_top     // switch to scheduler stack
 	bl page_in_new_process
 
 	/* udata now belongs to the new process. */
 
+	ldr r5, =udata              // belongs to old process
 	ldr sp, [r5, #U_DATA__U_SP_OFFSET] // load old sp
 
 	cpsie if                    // interrupts on
-	pop {r0-r12, pc}            // restore registers and return
+	pop {r0, r4-r12, pc}        // restore registers and return
 
 
 proc dofork
-#if 0
 	/* On entry, r0 contains the ptab pointer of the new process. */
 
 	cpsid if
@@ -39,7 +40,7 @@ proc dofork
 
 	mov r1, r0
 	ldrb r0, [r1, #P_TAB__P_PID_OFFSET] // load child's pid
-	push {r0-r12, lr}           // save all registers (except sp)
+	push {r0, r4-r12, lr}       // save persistent registers
 
 	ldr r5, =udata
 	str sp, [r5, #U_DATA__U_SP_OFFSET]
@@ -49,10 +50,14 @@ proc dofork
 	ldr sp, =schedstack_top
 	mov r0, r1
 	bl copy_current_to_new_page
-#endif
 
-	mov r0, #4
-	b led_halt_and_blink
+	/* This has left the child page mapped, so resume it. */
+
+	ldr sp, [r5, #U_DATA__U_SP_OFFSET]
+	cpsie if
+	pop {r0, r4-r12, lr}
+	mov r0, #0                  // fork returns 0 for the child
+	bx lr
 
 
 proc doexec

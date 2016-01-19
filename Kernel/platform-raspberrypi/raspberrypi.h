@@ -1,6 +1,45 @@
 #ifndef RASPBERRYPI_H
 #define RASPBERRYPI_H
 
+
+#define invalidate_insn_cache()     mcr(15, 0, 7, 5, 0, 0)
+#define flush_prefetch_buffer()     mcr(15, 0, 7, 5, 4, 0)
+#define flush_branch_target_cache() mcr(15, 0, 7, 5, 6, 0)
+#define invalidate_data_cache()     mcr(15, 0, 7, 6, 0, 0)
+#define clean_data_cache()          mcr(15, 0, 7, 10, 0, 0)
+#define data_sync_barrier()         mcr(15, 0, 7, 10, 4, 0)
+#define data_mem_barrier()          mcr(15, 0, 7, 10, 5, 0)
+#define insn_sync_barrier()         flush_prefetch_buffer()
+#define insn_mem_barrier()          flush_prefetch_buffer()
+
+#define invalidate_tlb()            mcr(15, 0, 8, 7, 0, 0)
+
+#define MEGABYTE (1024*1024)
+extern volatile uint32_t tlbtable[4096];
+
+enum
+{
+	CACHED   = 1<<3,
+	BUFFERED = 1<<2,
+
+	CR_M     = 1<<0,  /* MMU on */
+	CR_A     = 1<<1,  /* Strict alignment checking */
+	CR_C     = 1<<2,  /* L1 data cache on */
+	CR_Z     = 1<<11, /* Branch flow prediction on */
+	CR_I     = 1<<12, /* L1 instruction cache on */
+};
+
+extern void set_tlb_entry(uint32_t virtual, uint32_t physical, uint32_t flags);
+extern void enable_mmu(void);
+
+extern void gpio_set_pin_func(int pin, int func, int mode);
+extern void gpio_set_output_pin(int pin, bool value);
+extern void led_init(void);
+extern void led_set(bool value);
+extern void led_on(void);
+extern void led_off(void);
+extern void led_halt_and_blink(int count);
+
 extern struct
 {
 	volatile uint32_t ARG2;           /* 00 */
@@ -398,26 +437,6 @@ enum
 	MAIL_EMPTY = (1<<30),
 	MAIL_FULL = (1<<31)
 };
-
-#define invalidate_insn_cache()     mcr(15, 0, 7, 5, 0, 0)
-#define flush_prefetch_buffer()     mcr(15, 0, 7, 5, 4, 0)
-#define flush_branch_target_cache() mcr(15, 0, 7, 5, 6, 0)
-#define invalidate_data_cache()     mcr(15, 0, 7, 6, 0, 0)
-#define clean_data_cache()          mcr(15, 0, 7, 10, 0, 0)
-#define data_sync_barrier()         mcr(15, 0, 7, 10, 4, 0)
-#define data_mem_barrier()          mcr(15, 0, 7, 10, 5, 0)
-#define insn_sync_barrier()         flush_prefetch_buffer()
-#define insn_mem_barrier()          flush_prefetch_buffer()
-
-#define invalidate_tlb()            mcr(15, 0, 8, 7, 0, 0)
-
-extern void gpio_set_pin_func(int pin, int func, int mode);
-extern void gpio_set_output_pin(int pin, bool value);
-extern void led_init(void);
-extern void led_set(bool value);
-extern void led_on(void);
-extern void led_off(void);
-extern void led_halt_and_blink(int count);
 
 enum
 {
