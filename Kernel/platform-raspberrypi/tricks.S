@@ -3,25 +3,28 @@
 
 .arch armv6
 
-proc switchin
-	mov r0, #1
-	b led_halt_and_blink
-
 .globl switchin
 proc switchout
 	cpsid if                    // interrupts off
 	mov r0, #0                  // set return code
 	push {r0-r12, lr}           // save all registers (except sp)
 
-	ldr r0, =udata_ptr
-	ldr r0, [r0]
-	str sp, [r0, #U_DATA__U_SP_OFFSET] // save sp
+	ldr r5, =udata_ptr          // belongs to old process
+	ldr r5, [r5]
+	str sp, [r5, #U_DATA__U_SP_OFFSET] // save sp
 
-	ldr sp, =sysstack_top       // switch to scheduler stack
-	bl getproc                  // find a new process to run
+	ldr sp, =schedstack_top     // switch to scheduler stack
+	bl getproc
+switchin:
+	cpsid if
+	bl page_in_new_process
 
-	mov r0, #2
-	b led_halt_and_blink
+	ldr r5, =udata_ptr          // belongs to old process
+	ldr r5, [r5]
+	ldr sp, [r5, #U_DATA__U_SP_OFFSET] // load old sp
+
+	cpsie if                    // interrupts on
+	pop {r0-r12, pc}            // restore registers and return
 
 proc doexec
 	/* On entry, r0 contains the start address. */

@@ -23,3 +23,13 @@ void* get_svc_stack_for_page(int page)
 	return sp;
 }
 
+void page_in_new_process(ptptr newproc)
+{
+	if (newproc->p_page != udata.u_page)
+	{
+		led_halt_and_blink(2);
+	}
+
+	newproc->p_status = P_RUNNING;
+}
+

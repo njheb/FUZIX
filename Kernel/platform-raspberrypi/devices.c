@@ -46,6 +46,8 @@ bool validdev(uint16_t dev)
 /* This is called with interrupts off. */
 void platform_interrupt(void)
 {
+	udata.u_ininterrupt = 1;
+
 	if (ARMIC.PENDING1 & (1<<ARMIC_IRQ1_TIMER3))
 	{
 		SYSTIMER.C3 += TIMER_INTERVAL;
@@ -56,18 +58,7 @@ void platform_interrupt(void)
 	if (ARMIC.PENDING2 & (1<<ARMIC_IRQ2_UART))
 		tty_interrupt();
 
-#if 0
-	switch (last_interrupt)
-	{
-		case INTERRUPT_WDT:
-			timer_interrupt();
-			break;
-
-		case INTERRUPT_USCI_A0:
-			tty_interrupt();
-			break;
-	}
-#endif
+	udata.u_ininterrupt = 0;
 }
 
 void device_init(void)

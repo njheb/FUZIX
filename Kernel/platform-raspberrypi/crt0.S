@@ -10,6 +10,7 @@
 .endm
 
 stack irqstack, 4096
+stack schedstack, 4096
 stack sysstack, 4096
 
 .section .vectors, "ax"
