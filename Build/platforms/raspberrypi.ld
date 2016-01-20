@@ -31,6 +31,9 @@ SECTIONS
 	} > USER
 	__bss_len = (__bss_end - __bss_start);
 
+	__heap_end = USER_BASE + USER_SIZE;
+	__heap_size = __heap_end - __bss_end;
+
 	/* The rest are all not normally part of the runtime image.  */
 
 	/* Stabs debugging sections.  */

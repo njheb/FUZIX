@@ -246,7 +246,10 @@ arg_t _execve(void)
 	uputl((uint32_t) nargv, nenvp - 1);
 	uputl((uint32_t) argc, nenvp - 2);
 
-	// Set stack pointer for the program
+	/* Set stack pointer for the program. Note that this DOES
+	 * NOT HAVE THE CORRECT ALIGNMENT. We're relying on the crt
+	 * to fix this (once it's extracted the arg and env pointers).
+	 */
 	udata.u_isp = nenvp - 4;
 
 	// Start execution (never returns)

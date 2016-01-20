@@ -138,14 +138,13 @@ void *__mini_malloc(size_t size)
 	/* Ensure size is aligned, otherwise our memory nodes become unaligned
 	 * and we get hard-to-debug errors on platforms which require
 	 * aligned accesses. */
-	size = (size + sizeof(void*) - 1) & ~(sizeof(void*) - 1);
+	size = ALIGNUP(size + sizeof(struct mem_cell));
 
 	/* Minor oops here, sbrk has a signed argument */
-	if (size > (((unsigned) -1) >> 1) - sizeof(struct mem_cell) * 3) {
+	if (size > (((unsigned) -1) >> 1) - sizeof(struct mem_cell) * 2) {
 	      nomem:errno = ENOMEM;
 		return 0;
 	}
-	size += sizeof(struct mem_cell);	/* Round up and leave space for size field */
 	ptr = (mem *) sbrk(size);
 	if ((int) ptr == -1)
 		return 0;

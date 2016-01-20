@@ -7,7 +7,7 @@ _start:
 	.word __data_start - _start
 	.word __data_end - _start
 	.word __bss_end - _start
-	.word 4096                // stack_size
+	.word __heap_size         // stack_size; also heap
 	.word __data_end - _start // reloc_start (also, amount to load off disk)
 	.word 0                   // reloc_count
 	.word 0x1                 // flags (load in RAM)
@@ -18,6 +18,12 @@ _start:
 	 * values here (m68k stack frame, maybe?). */
 
 	add sp, sp, #8
+
+	/* Our argv, envp etc are on the stack; but we need to align the stack
+	 * (the kernel doesn't do this for us). */
+	
+	mov r4, sp
+	bic sp, sp, #7
 
 	/* Wipe BSS.*/
 
@@ -31,13 +37,13 @@ _start:
 
 	bl __stdio_init_vars
 
-	/* Pull argc and argv off the stack. */
+	/* Pull argc and argv off the old stack pointer. */
 
-	pop {r0, r1}
+	ldmfd r4!, {r0, r1}
 
 	/* What's left on the stack is the environment. */
 
-	mov r2, sp
+	mov r2, r4
 	ldr r3, =environ
 	str r2, [r3]
 

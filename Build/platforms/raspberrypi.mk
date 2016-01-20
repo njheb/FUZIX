@@ -29,6 +29,7 @@ targetgcc.cflags += \
 	-ffunction-sections \
 	-fdata-sections \
 	-funit-at-a-time \
+	-mno-unaligned-access \
 	-mcpu=arm1176jzf-s \
 	-mfpu=vfp \
 	-marm \
