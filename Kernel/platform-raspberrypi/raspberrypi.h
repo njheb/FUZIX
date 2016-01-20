@@ -21,12 +21,15 @@ enum
 {
 	CACHED   = 1<<3,
 	BUFFERED = 1<<2,
+	USER     = 3<<10, /* User accessable */
+	PRIV     = 1<<10, /* Only accessable to privileged modes */
 
 	CR_M     = 1<<0,  /* MMU on */
 	CR_A     = 1<<1,  /* Strict alignment checking */
 	CR_C     = 1<<2,  /* L1 data cache on */
 	CR_Z     = 1<<11, /* Branch flow prediction on */
 	CR_I     = 1<<12, /* L1 instruction cache on */
+
 };
 
 extern void set_tlb_entry(uint32_t virtual, uint32_t physical, uint32_t flags);

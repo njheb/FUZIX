@@ -63,18 +63,18 @@ void platform_init(uint8_t* atags)
 	 * being in a known good location. */
 
 	/* Kernel page 1:1 mapping */
-	set_tlb_entry(0x00000000, 0x00000000, CACHED|BUFFERED);
+	set_tlb_entry(0x00000000, 0x00000000, CACHED|BUFFERED|PRIV);
 
 	/* The 16 peripheral pages (we map them to the Pi2 virtual address, for
 	 * simplicity) */
 	for (int page=0; page<0x10; page++)
 	{
 		uint32_t offset = page * MEGABYTE;
-		set_tlb_entry(0x3f000000|offset, 0x20000000|offset, 0);
+		set_tlb_entry(0x3f000000|offset, 0x20000000|offset, PRIV);
 	}
 
 	/* ...and our user address space. */
-	set_tlb_entry((uint32_t)&__progbase, 1*MEGABYTE, CACHED|BUFFERED);
+	set_tlb_entry((uint32_t)&__progbase, 1*MEGABYTE, CACHED|BUFFERED|USER);
 	enable_mmu();
 
 	/* Initialise system peripherals. */

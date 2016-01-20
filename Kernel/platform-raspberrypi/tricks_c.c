@@ -8,7 +8,6 @@ void set_tlb_entry(uint32_t virtual, uint32_t physical, uint32_t flags)
 {
 	int page = virtual / MEGABYTE;
 	tlbtable[page] = physical | flags
-		| (3<<10) /* AP = 3 (global access) */
 		| 0x12    /* 1MB page */
 		;
 }
@@ -50,7 +49,7 @@ void page_in_new_process(ptptr newp)
 
 		clean_data_cache();
 		invalidate_data_cache();
-		set_tlb_entry(basei, newp->p_page*MEGABYTE, CACHED|BUFFERED);
+		set_tlb_entry(basei, newp->p_page*MEGABYTE, CACHED|BUFFERED|USER);
 		invalidate_tlb();
 		flush_prefetch_buffer();
 		invalidate_insn_cache();
@@ -75,8 +74,8 @@ void copy_current_to_new_page(ptptr newp)
 
 	clean_data_cache();
 	invalidate_data_cache();
-	set_tlb_entry(basei,             newpage*MEGABYTE, CACHED|BUFFERED);
-	set_tlb_entry(basei + MEGABYTE,  curpage*MEGABYTE, CACHED|BUFFERED);
+	set_tlb_entry(basei,             newpage*MEGABYTE, CACHED|BUFFERED|USER);
+	set_tlb_entry(basei + MEGABYTE,  curpage*MEGABYTE, CACHED|BUFFERED|USER);
 	invalidate_tlb();
 
 	/* Copy the actual data. */
