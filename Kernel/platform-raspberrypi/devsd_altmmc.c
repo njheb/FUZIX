@@ -14,6 +14,7 @@
 #undef DEBUG
 
 static uint32_t card_address;
+static bool block_addressed;
 
 static void wait_for_mmc(void)
 {
@@ -56,43 +57,50 @@ static uint32_t mmc_arpc(uint32_t cmd, uint32_t arg)
 uint8_t devsd_transfer_sector(void)
 {
 	int i;
+	int attempts = 6;
 
-	if (blk_op.is_read)
+	while (attempts--)
 	{
-		#if defined(DEBUG)
-			kprintf("sd: read %x\n", blk_op.lba);
-		#endif
-		uint32_t addr = blk_op.lba << 9;
-		if (mmc_rpc(17 | ALTMMC_BUSY | ALTMMC_READ, addr)) /* READ_SINGLE_BLOCK */
+		if (blk_op.is_read)
 		{
-			kprintf("sd: error during transfer setup\n");
-			goto ioerror;
-		}
-
-		uint32_t* ptr = (uint32_t*) blk_op.addr;
-		for (i=0; i<128; i++)
-		{
-			while (!(ALTMMC.STATUS & ALTMMC_FIFO_STATUS))
-				;
-
-			if (ALTMMC.STATUS != ALTMMC_FIFO_STATUS)
+			#if defined(DEBUG)
+				kprintf("sd: read %x\n", blk_op.lba);
+			#endif
+			uint32_t addr = block_addressed ? blk_op.lba : (blk_op.lba << 9);
+			if (mmc_rpc(17 | ALTMMC_BUSY | ALTMMC_READ, addr)) /* READ_SINGLE_BLOCK */
 			{
-				kprintf("sd: error during transfer: %x\n", ALTMMC.STATUS);
-				goto ioerror;
+				kprintf("sd: error during transfer setup\n");
+				goto retryable_error;
 			}
 
-			*ptr++ = ALTMMC.DATA;
+			uint32_t* ptr = (uint32_t*) blk_op.addr;
+			for (i=0; i<128; i++)
+			{
+				while (!(ALTMMC.STATUS & ALTMMC_FIFO_STATUS))
+					;
+
+				if ((ALTMMC.STATUS & 0xff) != ALTMMC_FIFO_STATUS)
+				{
+					kprintf("sd: error during transfer: %x\n", ALTMMC.STATUS);
+					goto retryable_error;
+				}
+
+				*ptr++ = ALTMMC.DATA;
+			}
+
+			return 1;
 		}
-	}
-	else
-	{
-		goto ioerror;
+		else
+		{
+			goto abort;
+		}
+
+retryable_error:
+		mmc_rpc(12, 0); /* STOP_TRANSMISSION */
+		kprintf("sd: retrying\n");
 	}
 
-	return 1;
-
-ioerror:
-	mmc_rpc(12, 0); /* STOP_TRANSMISSION */
+abort:
 	udata.u_error = EIO;
 	return 0;
 }
@@ -142,8 +150,8 @@ void devsd_init(void)
 			break;
 	}
 
-	bool highcap = !!(ALTMMC.RSP0 & SD_OCR_HIGHCAP);
-	if (highcap)
+	block_addressed = !!(ALTMMC.RSP0 & SD_OCR_HIGHCAP);
+	if (block_addressed)
 		kprintf("(high capacity) ");
 
 	/* CARD IS IN READY MODE */
