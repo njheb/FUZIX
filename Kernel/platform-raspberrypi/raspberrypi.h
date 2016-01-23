@@ -220,45 +220,78 @@ enum
 
 extern struct
 {
-	volatile uint32_t CMD;      /* 00 */
-	volatile uint32_t ARG;      /* 04 */
-	volatile uint32_t TIMEOUT;  /* 08 */
-	volatile uint32_t CLKDIV;   /* 0c */
-	volatile uint32_t RSP0;     /* 10 */
-	volatile uint32_t RSP1;     /* 14 */
-	volatile uint32_t RSP2;     /* 18 */
-	volatile uint32_t RSP3;     /* 1c */
-	volatile uint32_t STATUS;   /* 20 */
+	volatile uint32_t CMD;      /* 00 aommand to SD card */
+	volatile uint32_t ARG;      /* 04 argument to SD card*/
+	volatile uint32_t TOUT;     /* 08 start value for timeout counter */
+	volatile uint32_t CDIV;     /* 0c start value for clock divider */
+	volatile uint32_t RSP0;     /* 10 SD card response */
+	volatile uint32_t RSP1;     /* 14 SD card response */
+	volatile uint32_t RSP2;     /* 18 SD card response */
+	volatile uint32_t RSP3;     /* 1c SD card response */
+	volatile uint32_t HSTS;     /* 20 host status */
 	volatile uint32_t UNK_0x24; /* 24 */
 	volatile uint32_t UNK_0x28; /* 28 */
 	volatile uint32_t UNK_0x2c; /* 2c */
-	volatile uint32_t VDD;      /* 30 */
-	volatile uint32_t EDM;      /* 34 */
-	volatile uint32_t HOST_CFG; /* 38 */
-	volatile uint32_t HBCT;     /* 3c */
-	volatile uint32_t DATA;     /* 40 */
+	volatile uint32_t VDD;      /* 30 card power control */
+	volatile uint32_t EDM;      /* 34 emergency debug mode */
+	volatile uint32_t HCFG;     /* 38 host configuration */
+	volatile uint32_t HBCT;     /* 3c host byte count (debug only) */
+	volatile uint32_t DATA;     /* 40 data to/from SD card */
 	volatile uint32_t UNK_0x44; /* 44 */
 	volatile uint32_t UNK_0x48; /* 48 */
 	volatile uint32_t UNK_0x4c; /* 4c */
-	volatile uint32_t HBLC;     /* 50 */
+	volatile uint32_t HBLC;     /* 50 host block count (SDIO/SDHC) */
 }
-ALTMMC;
+SDHOST;
 
 enum
 {
 	/* cmd register */
 
-	ALTMMC_ENABLE = 1<<15,
-    ALTMMC_FAIL = 1<<14,
-    ALTMMC_BUSY = 1<<11,
-    ALTMMC_NO_RSP = 1<<10,
-    ALTMMC_LONG_RSP = 1<<9,
-    ALTMMC_WRITE = 1<<7,
-    ALTMMC_READ = 1<<6,
+	SDHOST_CMD_NEW        = 1<<15,
+    SDHOST_CMD_FAIL       = 1<<14,
+    SDHOST_CMD_BUSYWAIT   = 1<<11,
+    SDHOST_CMD_NO_RSP     = 1<<10,
+    SDHOST_CMD_LONG_RSP   = 1<<9,
+    SDHOST_CMD_WRITE      = 1<<7,
+    SDHOST_CMD_READ       = 1<<6,
 
-    /* status register */
+    /* host status register */
 
-    ALTMMC_FIFO_STATUS = 1<<0,
+    SDHOST_HSTS_DATA              = 1<<0,
+	SDHOST_HSTS_FIFO_ERROR        = 1<<3,
+	SDHOST_HSTS_CRC7_ERROR        = 1<<4,
+	SDHOST_HSTS_CRC16_ERROR       = 1<<5,
+	SDHOST_HSTS_CMD_TIMEOUT_ERROR = 1<<6,
+	SDHOST_HSTS_REW_TIMEOUT_ERROR = 1<<7,
+	SDHOST_HSTS_SDIO_IRPT         = 1<<8,
+	SDHOST_HSTS_BLOCK_IRPT        = 1<<9,
+	SDHOST_HSTS_BUSY_IRPT         = 1<<10,
+
+	SDHOST_HSTS_ERROR             = SDHOST_HSTS_FIFO_ERROR |
+                                    SDHOST_HSTS_CRC7_ERROR |
+							        SDHOST_HSTS_CRC16_ERROR |
+									SDHOST_HSTS_CMD_TIMEOUT_ERROR |
+									SDHOST_HSTS_REW_TIMEOUT_ERROR,
+
+	/* host config register */
+
+	SDHOST_HCFG_REL_CMD_LINE  = 1<<0,
+	SDHOST_HCFG_WIDE_INT_BUS  = 1<<1,
+	SDHOST_HCFG_WIDE_EXT_BUS  = 1<<2,
+	SDHOST_HCFG_SLOW_CARD     = 1<<3,
+	SDHOST_HCFG_DATA_IRPT_EN  = 1<<4,
+	SDHOST_HCFG_SDIO_IRPT_EN  = 1<<5,
+	SDHOST_HCFG_BLOCK_IRPT_EN = 1<<8,
+	SDHOST_HCFG_BUSY_IRPT_EN  = 1<<10,
+
+	/* electronic dance music */
+
+	SDHOST_EDM_WRITE_THRESHOLD = 1<<9,  /* 5 bits wide */
+	SDHOST_EDM_READ_THRESHOLD  = 1<<14, /* 5 bits wide */
+	SDHOST_EDM_FORCE_DATA_MODE = 1<<19,
+	SDHOST_EDM_CLOCK_PULSE     = 1<<20,
+	SDHOST_EDM_BYPASS          = 1<<21,
 
 	/* SD card response bits */
 

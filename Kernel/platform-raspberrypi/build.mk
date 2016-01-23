@@ -35,7 +35,7 @@ elfkernel.srcs = \
 	../usermem.c \
 	crt0.S \
 	devices.c \
-	devsd_altmmc.c \
+	devsd_sdhost.c \
 	devtty.c \
 	libc.c \
 	main.c \

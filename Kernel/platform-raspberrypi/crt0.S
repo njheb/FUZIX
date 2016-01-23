@@ -43,9 +43,9 @@ proc dabt_handler
 
 proc irq_handler
 	ldr sp, =irqstack_top
-	push {r0-r12, lr}
+	push {r0-r3, lr}
 	bl platform_interrupt
-	pop {r0-r12, lr}
+	pop {r0-r3, lr}
 	subs pc, lr, #4
 
 proc fiq_handler
