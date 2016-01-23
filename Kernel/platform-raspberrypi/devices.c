@@ -11,8 +11,7 @@
 #include "raspberrypi.h"
 #include "externs.h"
 
-#define TIMER_INTERVAL 1000000
-//#define TIMER_INTERVAL (1000000 / TICKSPERSEC)
+#define TIMER_INTERVAL (1000000 / TICKSPERSEC)
 
 uint8_t need_resched;
 
@@ -50,9 +49,12 @@ void platform_interrupt(void)
 
 	if (ARMIC.PENDING1 & (1<<ARMIC_IRQ1_TIMER3))
 	{
-		SYSTIMER.C3 += TIMER_INTERVAL;
-		SYSTIMER.CS = SYSTIMER_CS_M3;
-		timer_interrupt();
+		while (SYSTIMER.CLO > SYSTIMER.C3)
+		{
+			SYSTIMER.C3 += TIMER_INTERVAL;
+			SYSTIMER.CS = SYSTIMER_CS_M3;
+			timer_interrupt();
+		}
 	}
 
 	if (ARMIC.PENDING2 & (1<<ARMIC_IRQ2_UART))
