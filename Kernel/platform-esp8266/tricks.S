@@ -45,7 +45,7 @@ switchin:
 
 	movi sp, swapstack + SWAPSTACK_SIZE
 	mov a15, a2				/* save a2 in callee-saved register */
-	call0 swapper
+	call0 swapinout
 	isync
 
 not_swapped:

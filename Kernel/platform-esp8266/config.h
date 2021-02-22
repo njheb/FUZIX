@@ -14,8 +14,6 @@
 #define CONFIG_INLINE_IRQ
 /* Trim disk blocks when no longer used */
 #define CONFIG_TRIM
-/* Enable single tasking */
-#define CONFIG_SINGLETASK
 /* Enable SD card code. */
 #define CONFIG_SD
 #define SD_DRIVE_COUNT 1

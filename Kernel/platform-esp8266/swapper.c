@@ -74,7 +74,7 @@ void pagemap_init(void)
 		swapmap_init(i);
 }
 
-static void swapinout(int blk,
+static void doswap(int blk,
 	int (*readwrite)(uint16_t dev, blkno_t blkno, usize_t nbytes,
                     uaddr_t buf, uint16_t page))
 {
@@ -113,7 +113,7 @@ int swapout(ptptr p)
 		return ENOMEM;
 	int blk = map * SWAP_SIZE;
 
-	swapinout(blk, swapwrite);
+	doswap(blk, swapwrite);
 
 	p->p_page = 0;
 	p->p_page2 = map;
@@ -140,11 +140,21 @@ void swapin(ptptr p, uint16_t map)
 		return;
 	}
 
-	swapinout(blk, swapread);
+	doswap(blk, swapread);
 
 #ifdef DEBUG
 	kprintf("%x: swapin done %d\n", p, p->p_page2);
 #endif
+}
+
+void swapinout(ptptr p)
+{
+   /* If there's an existing process in memory, swap it out; then swap in the
+    * new process. */
+   if (udata.u_ptab->p_page)
+       swapout(udata.u_ptab);
+   swapper(p);
+   p->p_page = 1;
 }
 
 /* vim: sw=4 ts=4 et: */
