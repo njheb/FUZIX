@@ -72,6 +72,9 @@ image: image.elf
 	esptool elf2image image.elf
 	touch image
 
+filesystem.img: world
+	./update-flash.sh
+
 burn:
 	esptool --port /dev/ttyUSB0 write_flash 0x00000 image.elf-0x00000.bin 0x10000 image.elf-0x10000.bin -ff 80m -fm dout
 	#esptool --port /dev/ttyUSB0 write_flash 0x00000 image.elf-0x00000.bin 0x10000 image.elf-0x10000.bin 0x100000 ../filesystem.ftl -ff 80m -fm dout
@@ -79,4 +82,25 @@ burn:
 	
 clean:
 	rm -f $(OBJS) $(JUNK)  core *~
+	$(MAKE) -C ../../Library/libs -f Makefile.esp8266 clean
+	$(MAKE) -C ../../Applications/util -f Makefile.esp8266 clean
+	$(MAKE) -C ../../Applications/V7/cmd -f Makefile.esp8266 clean
+	$(MAKE) -C ../../Applications/V7/cmd/sh -f Makefile.esp8266 clean
+	$(MAKE) -C ../../Applications/games -f Makefile.esp8266 clean
+	$(MAKE) -C ../../Applications/levee -f Makefile.esp8266 clean
+	$(MAKE) -C ../../Applications/cave -f Makefile.esp8266 clean
+	$(MAKE) -C ../../Applications/cursesgames -f Makefile.esp8266 clean
+	$(MAKE) -C ../../Standalone clean
+
+
+world:
+	$(MAKE) -C ../../Library/libs -f Makefile.esp8266
+	$(MAKE) -C ../../Applications/util -f Makefile.esp8266
+	$(MAKE) -C ../../Applications/V7/cmd -f Makefile.esp8266
+	$(MAKE) -C ../../Applications/V7/cmd/sh -f Makefile.esp8266
+	$(MAKE) -C ../../Applications/games -f Makefile.esp8266
+	$(MAKE) -C ../../Applications/levee -f Makefile.esp8266
+	$(MAKE) -C ../../Applications/cave -f Makefile.esp8266
+	$(MAKE) -C ../../Applications/cursesgames -f Makefile.esp8266
+	$(MAKE) -C ../../Standalone
 

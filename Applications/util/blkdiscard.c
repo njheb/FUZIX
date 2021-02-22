@@ -69,10 +69,15 @@ int main(int argc, char* const* argv)
 		{
 			if (ioctl(fd, HDIO_TRIM, &blkno) == -1)
 				perror_exit("erase failed");
+			if (!(blkno & 15))
+			{
+				putchar('.');
+				fflush(stdout);
+			}
 		}
 	}
 
-	printf("Done.\n");
+	printf("\nDone.\n");
 	close(fd);
 	return 0;
 }
