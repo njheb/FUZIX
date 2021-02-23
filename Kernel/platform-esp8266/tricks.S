@@ -36,6 +36,8 @@ platform_switchout:
 switchin:
 	/* On entry, a2 is the ptptr of the process to run */
 
+	mov a15, a2				/* save a2 in callee-saved register */
+
 	/* Is the new process actually swapped out? */
 
 	l16ui a3, a2, P_TAB__P_PAGE_OFFSET
@@ -44,7 +46,6 @@ switchin:
 	/* Switch to the swapper stack and swap in the new process. */
 
 	movi sp, swapstack + SWAPSTACK_SIZE
-	mov a15, a2				/* save a2 in callee-saved register */
 	call0 swapinout
 	isync
 

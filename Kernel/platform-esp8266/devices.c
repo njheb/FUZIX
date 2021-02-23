@@ -67,8 +67,11 @@ static void fatal_exception_cb(struct __exception_frame* ef, int cause)
 	kprintf("   a4=%p  a5=%p  a6=%p  a7=%p\n", ef->a4, ef->a5, ef->a6, ef->a7);
 	kprintf("   a8=%p  a9=%p a10=%p a11=%p\n", ef->a8, ef->a9, ef->a10, ef->a11);
 	kprintf("  a12=%p a13=%p a14=%p a15=%p\n", ef->a12, ef->a13, ef->a14, ef->a15);
-	for (;;)
-		;
+    kprintf("data at %p-%p, code at %p-%p\n", DATABASE, DATATOP, CODEBASE, CODETOP);
+    if ((ef->epc >= CODEBASE) && (ef->epc < CODEBASE))
+        kprintf("user mode exception: a0=%p, pc=%p\n", ef->a0 - CODEBASE, ef->epc - CODEBASE);
+    for (;;)
+        ;
 }
 
 static void timer_isr(void* user, struct __exception_frame* ef)
