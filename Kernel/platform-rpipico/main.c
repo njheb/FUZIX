@@ -6,6 +6,9 @@
 #include "globals.h"
 #include "printf.h"
 
+#include "textmode/textmode.h"
+
+
 uint_fast8_t platform_param(char* p)
 {
 	return 0;
@@ -42,6 +45,10 @@ void syscall_handler(struct svc_frame* eh)
 
 int main(void)
 {
+//    init_for_main();
+//    (void)video_main();
+//    demo_for_main(); //get no further
+
     tty_rawinit();
 
 	if ((U_DATA__U_SP_OFFSET != offsetof(struct u_data, u_sp)) ||
@@ -63,7 +70,10 @@ int main(void)
 	for (int i=0; i<MAX_SWAPS; i++)
 		swapmap_init(i);
 
+        (void)video_main();
+
 	di();
+
 	fuzix_main();
 }
 
