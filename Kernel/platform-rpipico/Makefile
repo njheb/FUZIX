@@ -1,9 +1,9 @@
-export PICO_SDK_PATH = /home/dg/src/pico/pico-sdk
-#export PICO_SDK_PATH = /home/pi/pico/pico-sdk
+#export PICO_SDK_PATH = /home/dg/src/pico/pico-sdk
+export PICO_SDK_PATH = /home/pi/pico/pico-sdk
 
 #set PICO_BOARD_KIND to either pico or vgaboard
-#PICO_BOARD_KIND = vgaboard
-PICO_BOARD_KIND = pico
+PICO_BOARD_KIND = vgaboard
+#PICO_BOARD_KIND = pico
 ifeq ($(PICO_BOARD_KIND), pico)
 export SD_PIO_SPI_SET = 1
 else
