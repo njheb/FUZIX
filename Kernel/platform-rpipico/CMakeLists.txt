@@ -23,12 +23,7 @@ include_directories(
 	../dev
 	../include
 	../cpu-armm0
-#    /home/pi/pico/pico-extras/src/rp2_common/pico_scanvideo_dpi/include
-#    /home/pi/pico/pico-extras/src/common/pico_scanvideo/include
-#    /home/pi/pico/pico-playground/build/pico_extras/src/common/pico_scanvideo
 )
-
-#add_subdirectory(textmode)
 
 
 add_executable(fuzix)
@@ -80,10 +75,6 @@ target_sources(fuzix PRIVATE
 	./textmode/textmode.c
         ./textmode/textmode.h
 	./textmode/font8.c
-#	./render/image.c
-#	./render/image.h
-#	./render/spans.c
-#	./render/spans.h
 )
 
     target_compile_definitions(fuzix PRIVATE
@@ -102,7 +93,6 @@ target_link_libraries(fuzix
 	pico_multicore
 	pico_scanvideo_dpi
 #	textmode
-#???	render
 )
 
 pico_add_extra_outputs(fuzix)
