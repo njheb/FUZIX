@@ -396,7 +396,13 @@ void fuzix_main(void)
 	kputs("ok.\n");
 
 	/* initialise hardware devices */
-	device_init();
+
+	device_init(); //njh textbuffer causing problem in here
+//        while (1)
+//	{kputs("a long line does disrupt the vga display\n");
+//         volatile int j;
+//         for(int i=0; i<60000; i++){j=i;}
+//        }
 
 	do {
             old_progptr = progptr;

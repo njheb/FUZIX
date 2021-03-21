@@ -70,9 +70,9 @@ int main(void)
 	for (int i=0; i<MAX_SWAPS; i++)
 		swapmap_init(i);
 
-        (void)video_main();
 
 	di();
+        (void)video_main();
 
 	fuzix_main();
 }

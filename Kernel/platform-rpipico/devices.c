@@ -59,8 +59,8 @@ void device_init(void)
     /* The flash device is too small to be useful, and a corrupt flash will
      * cause a crash on startup... oddly. */
 
-	flash_dev_init();
-    
+//njh getting a crash with textbuffer 	flash_dev_init();
+
 	sd_rawinit();
 	devsd_init();
 
