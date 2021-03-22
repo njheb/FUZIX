@@ -352,7 +352,9 @@ void init_render_state(int core) {
 }
 
 #if PICO_SCANVIDEO_PLANE1_FRAGMENT_DMA
-static __not_in_flash("x") uint16_t beginning_of_line[] = {
+//njhstatic __not_in_flash("x") uint16_t beginning_of_line[] = {
+//njh looking for textbuffer crash, don't "corrupt" flash
+static __not_in_flash("y") uint16_t beginning_of_line[] = {
         // todo we need to be able to shift scanline to absorb these extra pixels
 #if FRAGMENT_WORDS == 5
         COMPOSABLE_RAW_1P, 0,

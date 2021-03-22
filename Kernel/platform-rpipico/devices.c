@@ -60,6 +60,8 @@ void device_init(void)
      * cause a crash on startup... oddly. */
 
 //njh getting a crash with textbuffer 	flash_dev_init();
+//njh sdcard ends up as hda1, hda2 without flash_dev_init
+//njh 	flash_dev_init();
 
 	sd_rawinit();
 	devsd_init();
