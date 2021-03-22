@@ -201,7 +201,8 @@ int8_t pad[65536];  //njh not sure if this is necessary, working without so far
 uint32_t *font_raw_pixels;
 #else
 */
-uint32_t font_raw_pixels[22800];
+uint32_t font_raw_pixels[22800];  //njh was being overflowed when 16384
+//njh would be nice to come up with a more compact format for font
 #endif
 #define FONT_WIDTH_WORDS FRAGMENT_WORDS
 #if FRAGMENT_WORDS == 5
