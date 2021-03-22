@@ -201,7 +201,7 @@ int8_t pad[65536];  //njh not sure if this is necessary, working without so far
 uint32_t *font_raw_pixels;
 #else
 */
-uint32_t font_raw_pixels[16384];
+uint32_t font_raw_pixels[22800];
 #endif
 #define FONT_WIDTH_WORDS FRAGMENT_WORDS
 #if FRAGMENT_WORDS == 5

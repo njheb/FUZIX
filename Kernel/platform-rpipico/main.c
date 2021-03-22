@@ -70,9 +70,9 @@ int main(void)
 	for (int i=0; i<MAX_SWAPS; i++)
 		swapmap_init(i);
 
-
 	di();
-        (void)video_main();
+//        (void)video_main();
+//njh try moving to after flash_init_dev in devices.c
 
 	fuzix_main();
 }

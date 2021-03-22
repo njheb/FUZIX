@@ -54,8 +54,10 @@ extern uint8_t progbase[PROGSIZE];
 
 //njh#define BOOTDEVICE 0x0012 /* hdb2 */
 //njh#define SWAPDEV    0x0011 /* hdb1 */
-#define BOOTDEVICE 0x0002 /* hda2 because flash not being inited*/
-#define SWAPDEV    0x0001 /* hda1 ditto*/
+#define BOOTDEVICE 0x0012 /* hdb2 */
+#define SWAPDEV    0x0011 /* hdb1 */
+//njh#define BOOTDEVICE 0x0002 /* hda2 because flash not being inited*/
+//njh#define SWAPDEV    0x0001 /* hda1 ditto*/
 
 /* Device parameters */
 #define NUM_DEV_TTY 1

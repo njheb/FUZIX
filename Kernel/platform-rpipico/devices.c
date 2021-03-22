@@ -12,6 +12,8 @@
 #include <hardware/irq.h>
 #include <hardware/structs/timer.h>
 
+#include "textmode/textmode.h"
+
 struct devsw dev_tab[] =  /* The device driver switch table */
 {
 // minor    open         close        read      write           ioctl
@@ -61,7 +63,7 @@ void device_init(void)
 
 //njh getting a crash with textbuffer 	flash_dev_init();
 //njh sdcard ends up as hda1, hda2 without flash_dev_init
-//njh 	flash_dev_init();
+ 	flash_dev_init();
 
 	sd_rawinit();
 	devsd_init();
@@ -70,6 +72,8 @@ void device_init(void)
     update_us_since_boot(&now, time_us_64());
     hardware_alarm_set_callback(0, timer_tick_cb);
     timer_tick_cb(0);
+
+   (void)video_main();
 }
 
 /* vim: sw=4 ts=4 et: */
