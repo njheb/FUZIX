@@ -8,6 +8,11 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_BUILD_TYPE Debug)
 set(PICO_COPY_TO_RAM 1)
 
+# Makefile modified to set up SD_PIO_SPI_SET of GPIO's
+# depends on choosing between 'pico' or 'vgaboard'
+# see Makefile
+add_definitions(-DSD_PIO_SPI_SET=$(SD_PIO_SPI_SET))
+
 pico_sdk_init()
 include_directories(
 	.
@@ -17,16 +22,28 @@ include_directories(
 	../cpu-armm0
 )
 
-add_executable(fuzix
+
+
+add_executable(fuzix)
+
+pico_generate_pio_header(fuzix ${CMAKE_CURRENT_LIST_DIR}/spi_sdcard.pio)
+
+
+target_sources(fuzix PRIVATE
 	devices.c
 	devflash.c
 	devsdspi.c
+	pio_spi_sdcard.c
+	pio_spi_sdcard.h
 	devtty.c
-	elf.c 
+	elf.c
 	main.c
 	misc.c
 	rawflash.c
+	swapper.c
 	tricks.S
+	core1.c
+	usbdescriptors.c
 	../dev/blkdev.c
 	../dev/mbr.c
 	../dev/devsd_discard.c
@@ -34,16 +51,16 @@ add_executable(fuzix
 	../lib/dhara/error.c
 	../lib/dhara/journal.c
 	../lib/dhara/map.c
+	../lib/hexdump.c
 	../devio.c
 	../devsys.c
 	../filesys.c
 	../inode.c
 	../kdata.c
-	../lowlevel-armm0.S
+	../lowlevel-armm0.c
 	../malloc.c
 	../mm.c
 	../process.c
-	../simple.c
 	../start.c
 	../swap.c
 	../syscall_execelf32.c
@@ -60,10 +77,17 @@ add_executable(fuzix
 
 target_link_libraries(fuzix
 	pico_stdlib
+	pico_multicore
 	hardware_flash
-	hardware_spi
+#	hardware_spi
 	hardware_uart
-	hardware_timer
+#       hardware_timer
+        hardware_pio
+	tinyusb_device_unmarked
+	tinyusb_board
 )
+
+pico_set_float_implementation(fuzix none)
+pico_set_double_implementation(fuzix none)
 pico_add_extra_outputs(fuzix)
 
