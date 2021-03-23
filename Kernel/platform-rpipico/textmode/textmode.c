@@ -14,6 +14,8 @@
 #include "pico/sync.h"
 #include "font.h"
 
+//#include "textmode.h"
+
 // set this to 3, 4 or 5 for smallest to biggest font
 #define FRAGMENT_WORDS 4
 
@@ -23,13 +25,21 @@
 
 #endif
 
+#undef INSTRUMENTATION
+
+#ifdef INSTRUMENTATION
+
 CU_REGISTER_DEBUG_PINS(frame_gen)
 
 //CU_SELECT_DEBUG_PINS(frame_gen)
-
+#endif
 typedef bool (*render_scanline_func)(struct scanvideo_scanline_buffer *dest, int core);
 bool render_scanline_test_pattern(struct scanvideo_scanline_buffer *dest, int core);
 bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core);
+
+//njh move this to a header and make sure to kick off after UART1 setup 
+//in FUZIX
+int video_main(void);
 
 #define vga_mode vga_mode_640x480_60
 //#define vga_mode vga_mode_320x240_60
@@ -43,11 +53,15 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core);
 // for now we want to see second counter on native and don't need both cores
 #if PICO_ON_DEVICE
 // todo there is a bug in multithreaded rendering atm
-#define RENDER_ON_CORE0
+//njh try disableing this #define RENDER_ON_CORE0
+//njh seems OK without and IRQS_ON_CORE1 disabled
 #endif
 #define RENDER_ON_CORE1
 
+//njh try enabling IRQS_ON_CORE1
 //#define IRQS_ON_CORE1
+#define IRQS_ON_CORE1
+//njh this also seems to work in conjunction with disable RENDER_ON_CORE0
 
 render_scanline_func render_scanline = render_scanline_bg;
 
@@ -57,7 +71,9 @@ int hspeed = 1 << COORD_SHIFT;
 int hpos;
 int vpos;
 
+#ifdef INSTRUMENTATION
 static const int input_pin0 = 22;
+#endif
 
 // to make sure only one core updates the state when the frame number changes
 // todo note we should actually make sure here that the other core isn't still rendering (i.e. all must arrive before either can proceed - a la barrier)
@@ -76,16 +92,20 @@ void init_render_state(int core);
 
 
 void render_loop() {
+#ifdef INSTRUMENTATION
     static uint8_t last_input = 0;
+#endif
     static uint32_t last_frame_num = 0;
     int core_num = get_core_num();
     assert(core_num >= 0 && core_num < 2);
     printf("Rendering on core %d\n", core_num);
+#ifdef INSTRUMENTATION
 #if DEBUG_PINS_ENABLED(frame_gen)
     if (core_num == 1) {
         gpio_init(PICO_DEBUG_PIN_BASE + 1);
         gpio_set_dir_out_masked(2 << PICO_DEBUG_PIN_BASE); // steal debug pin 2 for this core
     }
+#endif
 #endif
     while (true) {
         struct scanvideo_scanline_buffer *scanline_buffer = scanvideo_begin_scanline_generation(true);
@@ -111,6 +131,7 @@ void render_loop() {
 //                hpos = (level0_map_width*8 - vga_mode.width) << COORD_SHIFT;
 //                hspeed = -hspeed;
 //            }
+#ifdef INSTRUMENTATION
             uint8_t new_input = gpio_get(input_pin0);
             if (last_input && !new_input) {
                 static int foo = 1;
@@ -121,6 +142,7 @@ void render_loop() {
                 hpos++;
             }
             last_input = new_input;
+#endif
             static int bar = 1;
 #if PICO_ON_DEVICE
 //            if (bar >= 800 && bar <= 802)
@@ -129,9 +151,13 @@ void render_loop() {
 #endif
         }
         mutex_exit(&frame_logic_mutex);
+#ifdef INSTRUMENTATION
         DEBUG_PINS_SET(frame_gen, core_num ? 2 : 4);
+#endif
         render_scanline(scanline_buffer, core_num);
+#ifdef INSTRUMENTATION
         DEBUG_PINS_CLR(frame_gen, core_num ? 2 : 4);
+#endif
 #if PICO_SCANVIDEO_PLANE_COUNT > 2
         assert(false);
 #endif
@@ -163,9 +189,9 @@ void core1_func() {
 #ifdef TEST_WAIT_FOR_SCANLINE
 volatile uint32_t scanline_color = 0;
 #endif
-
-uint8_t pad[65536];
-
+#ifdef INSTRUMENTATION
+int8_t pad[65536];  //njh not sure if this is necessary, working without so far
+#endif
 #if PICO_ON_DEVICE
 uint32_t *font_raw_pixels;
 #else
@@ -233,9 +259,22 @@ void build_font() {
     printf("%p %p\n", p, font_raw_pixels + font->dsc->cmaps->range_length * FONT_SIZE_WORDS);
 }
 
+/*scaled for middle sized font*/
+char message_text[32][81] = {
+"0#############offscreen",
+"1#############lower half visible",
+"2The quick brown fox jumped over the Lazy dog.....012345678901234567890123456",
+"3#############",
+"4Another Line",
+"#1234567890123456789012345678901234567890123456789012345678901234567890123456",
+"00000000001111111111222222222233333333334444444444555555555566666666667777777",
+"",
+};
+
 int video_main(void) {
 
     mutex_init(&frame_logic_mutex);
+#ifdef INSTRUMENTATION
     // set 18-22 to RIO for debugging
     for (int i = PICO_DEBUG_PIN_BASE; i < 22; ++i)
         gpio_init(i);
@@ -269,7 +308,7 @@ int video_main(void) {
 
     // go for launch (debug pin)
     gpio_put(24, 1);
-
+#endif
     build_font();
     sem_init(&video_setup_complete, 0, 1);
 #ifndef IRQS_ON_CORE1
@@ -293,23 +332,8 @@ int video_main(void) {
 #else
 
     sem_acquire_blocking(&video_setup_complete);
-    while (true) {
-#ifndef TEST_WAIT_FOR_SCANLINE
-        // Just use vblank to print out a value every second
-        static int i=0, s=0;
-        video_wait_for_vblank();
-        if (++i == 60) {
-            printf("%d\n", s++);
-            i = 0;
-        }
-#else
-        static uint32_t sl = 0;
-        sl = scanvideo_wait_for_scanline_complete(sl);
-        scanline_color = (scanline_color + 0x10u) & 0xffu;
+    return 0;
 #endif
-    }
-#endif
-    __builtin_unreachable();
 }
 
 //struct palette16 *opaque_pi_palette = NULL;
@@ -350,6 +374,7 @@ static __not_in_flash("y") uint16_t end_of_line[] = {
         COMPOSABLE_EOL_SKIP_ALIGN, 0xffff // eye catcher
 };
 #endif
+
 
 bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
     // 1 + line_num red, then white
@@ -425,10 +450,29 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
     uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
     int cmax = font->dsc->cmaps[0].range_length;
     int ch = 0;
+
 //    __breakpoint();
+
+//njh row zero and top half of row one off the top of the screen
+
+    int j = y/FONT_HEIGHT;
+    int val;
+    bool pad_the_rest = false;
     for (int i = 0; i < COUNT; i++) {
-        ch++;
-        if (ch == cmax) ch = 1;
+          if (pad_the_rest == true)
+	     ch = (int)' '-32;
+	  else
+          {
+             val = (int)message_text[j][i];
+	     if (val==0)
+             {
+  		ch = (int)' '-32;
+                pad_the_rest = true;
+             }
+  	     else
+	  	ch = val-32;
+          }
+//njh end of simple framebuffer character lookup on scanline pass
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
         *output32++ = FRAGMENT_WORDS;
 #endif
@@ -507,21 +551,77 @@ void go_core1(void (*execute)()) {
     multicore_launch_core1(execute);
 }
 
+void init_for_main(void)
+{
+    setup_default_uart();
+    printf("TEST UART1\n");
+    for (int k=7; k<32; k++) {
+        message_text[k][0]=(k/10)+'0';
+        message_text[k][1]=(k%10)+'0';
+        message_text[k][2]='\0';
+    }
+}
+
+void demo_for_main(void)
+{
+    while (true) {
+
+        // Just use vblank to print out a value every second
+        static int i=0, s=0;
+        scanvideo_wait_for_vblank();
+        if (++i == 60) {
+            printf("%d\n", s++);
+                int k =7;
+                int t =s%100;
+                message_text[k][0]=(t/10)+'0';
+                message_text[k][1]=(t%10)+'0';
+
+            i = 0;
+        }
+
+    }
+    __builtin_unreachable();
+}
+
+#if 1
 int main(void) {
+#ifdef INSTRUMENTATION
 #if PICO_SCANVIDEO_48MHZ
     set_sys_clock_48mhz();
 #endif
     gpio_put(27, 0);
+#endif
+#if PICO_DEFAULT_UART_TX_PIN != 20
+#error "problem with defaults TX"
+#endif
+#if PICO_DEFAULT_UART_RX_PIN != 21
+#error "problem with defaults RX"
+#endif
+#if PICO_DEFAULT_UART != 1
+#error "problem with default UART"
+#endif
+//    setup_default_uart();
+    stdio_init_all();
+    printf("TEST UART1\n");
+    for (int k=7; k<32; k++) {
+        message_text[k][0]=(k/10)+'0';
+        message_text[k][1]=(k%10)+'0';
+        message_text[k][2]='\0';
+    }
 
-    setup_default_uart();
+//#if !PICO_ON_DEVICE
+    #include <math.h>
+        for(int i = 0; i<64;i++) {
+            printf("%d, ", (int)(0x7f*cos(i*M_PI/32)));
+        }
+        printf("\n");
+//#endif
 
-#if !PICO_ON_DEVICE
-    //#include <math.h>
-    //    for(int i = 0; i<64;i++) {
-    //        printf("%d, ", (int)(0x7f*cos(i*M_PI/32)));
-    //    }
-    //    printf("\n");
+//mjh    return video_main();
+   (void)video_main();
+   demo_for_main();
+}
 #endif
 
-    return video_main();
-}
+
+

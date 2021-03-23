@@ -3,10 +3,11 @@ PROJECT(textmode)
 if (TARGET pico_scanvideo_dpi)
     add_executable(textmode
             textmode.c
-            font6.c
+#            font6.c
             font8.c
-            font10.c
-            lcd.c
+#            font10.c
+#            lcd.c
+#            main.c
     )
 
     target_compile_definitions(textmode PRIVATE
