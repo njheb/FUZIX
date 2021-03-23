@@ -53,7 +53,7 @@
 #endif
 
     pio_spi_inst_t spi = {
-        .pio = pio0,
+        .pio = pio1,
         .sm = 0,
         .cs_pin = PIN_CS
     };
