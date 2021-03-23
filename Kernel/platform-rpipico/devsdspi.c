@@ -51,7 +51,7 @@
 #else
 #error "Unsupported SD_PIO_SPI_SET take a look at the Makefile"
 #endif
-
+//use pio1, pio0 inuse by vga
     pio_spi_inst_t spi = {
         .pio = pio1,
         .sm = 0,

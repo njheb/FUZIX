@@ -6,6 +6,10 @@
 extern void flash_dev_init(void);
 extern void sd_rawinit(void);
 
+#ifdef USE_SERIAL_ONLY
+extern void tty_rawinit(void);
+#endif
+
 extern void contextswitch(ptptr p);
 
 struct svc_frame

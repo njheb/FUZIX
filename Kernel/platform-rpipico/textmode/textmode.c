@@ -15,6 +15,9 @@
 #include "font.h"
 
 //#include "textmode.h"
+//#include "printf.h" no kprintf available clash between cores
+#define printf(...)
+//#define calloc kmalloc
 
 // set this to 3, 4 or 5 for smallest to biggest font
 #define FRAGMENT_WORDS 4
@@ -193,9 +196,13 @@ volatile uint32_t scanline_color = 0;
 int8_t pad[65536];  //njh not sure if this is necessary, working without so far
 #endif
 #if PICO_ON_DEVICE
+//debug kernel
+/*
 uint32_t *font_raw_pixels;
 #else
-uint32_t font_raw_pixels[16384];
+*/
+uint32_t font_raw_pixels[22800];  //njh was being overflowed when 16384
+//njh would be nice to come up with a more compact format for font
 #endif
 #define FONT_WIDTH_WORDS FRAGMENT_WORDS
 #if FRAGMENT_WORDS == 5
@@ -216,7 +223,7 @@ void build_font() {
         if (i) i != 0x8000;
     }
 #if PICO_ON_DEVICE
-    font_raw_pixels = (uint32_t *) calloc(4, font->dsc->cmaps->range_length * FONT_SIZE_WORDS);
+//debug kernel    font_raw_pixels = (uint32_t *) calloc(4, font->dsc->cmaps->range_length * FONT_SIZE_WORDS);
 #endif
     uint32_t *p = font_raw_pixels;
     assert(font->line_height == FONT_HEIGHT);
@@ -346,7 +353,9 @@ void init_render_state(int core) {
 }
 
 #if PICO_SCANVIDEO_PLANE1_FRAGMENT_DMA
-static __not_in_flash("x") uint16_t beginning_of_line[] = {
+//njhstatic __not_in_flash("x") uint16_t beginning_of_line[] = {
+//njh looking for textbuffer crash, don't "corrupt" flash
+static __not_in_flash("y") uint16_t beginning_of_line[] = {
         // todo we need to be able to shift scanline to absorb these extra pixels
 #if FRAGMENT_WORDS == 5
         COMPOSABLE_RAW_1P, 0,
@@ -583,7 +592,7 @@ void demo_for_main(void)
     __builtin_unreachable();
 }
 
-#if 1
+#if 0
 int main(void) {
 #ifdef INSTRUMENTATION
 #if PICO_SCANVIDEO_48MHZ

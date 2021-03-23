@@ -11,8 +11,12 @@
 #include "picosdk.h"
 #include <hardware/irq.h>
 #include <hardware/structs/timer.h>
+#ifndef USE_SERIAL_ONLY
 #include <pico/multicore.h>
 #include "core1.h"
+#endif
+
+#include "textmode/textmode.h"
 
 struct devsw dev_tab[] =  /* The device driver switch table */
 {
@@ -54,12 +58,13 @@ static void timer_tick_cb(unsigned alarm)
     }
 
     timer_interrupt();
-
+#ifndef USE_SERIAL_ONLY
     if (usbconsole_is_readable())
     {
         uint8_t c = usbconsole_getc_blocking();
         tty_inproc(minor(BOOT_TTY), c);
     }
+#endif
 }
 
 void device_init(void)
@@ -76,6 +81,8 @@ void device_init(void)
     update_us_since_boot(&now, time_us_64());
     hardware_alarm_set_callback(0, timer_tick_cb);
     timer_tick_cb(0);
+//njh
+   (void)video_main();
 }
 
 /* vim: sw=4 ts=4 et: */

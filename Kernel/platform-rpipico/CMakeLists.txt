@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.12)
 # Pull in SDK (must be before project)
 include(pico_sdk_import.cmake)
 
+# We also need PICO EXTRAS
+include(pico_extras_import.cmake)
+
 project(fuzix C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_BUILD_TYPE Debug)
@@ -34,7 +37,7 @@ target_sources(fuzix PRIVATE
 	devflash.c
 	devsdspi.c
 	pio_spi_sdcard.c
-	pio_spi_sdcard.h
+#	pio_spi_sdcard.h
 	devtty.c
 	elf.c
 	main.c
@@ -42,8 +45,10 @@ target_sources(fuzix PRIVATE
 	rawflash.c
 	swapper.c
 	tricks.S
-	core1.c
-	usbdescriptors.c
+#ifndef USE_SERIAL_ONLY 
+#njh	core1.c
+#njh	usbdescriptors.c
+#endif
 	../dev/blkdev.c
 	../dev/mbr.c
 	../dev/devsd_discard.c
@@ -73,7 +78,16 @@ target_sources(fuzix PRIVATE
 	../tty.c
 	../usermem.c
 	../version.c
+	./textmode/textmode.c
+        ./textmode/textmode.h
+	./textmode/font8.c
 )
+
+    target_compile_definitions(fuzix PRIVATE
+            PICO_SCANVIDEO_SCANLINE_BUFFER_COUNT=4
+            PICO_SCANVIDEO_PLANE1_FIXED_FRAGMENT_DMA=true
+    )
+
 
 target_link_libraries(fuzix
 	pico_stdlib
@@ -83,8 +97,9 @@ target_link_libraries(fuzix
 	hardware_uart
 #       hardware_timer
         hardware_pio
-	tinyusb_device_unmarked
-	tinyusb_board
+#njh	tinyusb_device_unmarked
+#njh	tinyusb_board
+	pico_scanvideo_dpi
 )
 
 pico_set_float_implementation(fuzix none)

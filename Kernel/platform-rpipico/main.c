@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "printf.h"
 #include "core1.h"
+#include "textmode/textmode.h"
 
 uint_fast8_t platform_param(char* p)
 {
@@ -43,7 +44,11 @@ void syscall_handler(struct svc_frame* eh)
 
 int main(void)
 {
-    core1_init();
+#ifdef USE_SERIAL_ONLY
+   tty_rawinit(); 
+#else
+   core1_init();
+#endif
 
 	if ((U_DATA__U_SP_OFFSET != offsetof(struct u_data, u_sp)) ||
 		(U_DATA__U_PTAB_OFFSET != offsetof(struct u_data, u_ptab)) ||

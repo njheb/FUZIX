@@ -30,7 +30,7 @@
 /* Serial TTY, no VT or font */
 #undef CONFIG_VT
 #undef CONFIG_FONT8X8
-
+#define USE_SERIAL_ONLY  //njh uart1 only no usb comport yet
 /* Program layout */
 
 #define UDATA_BLKS  3
@@ -58,7 +58,9 @@ extern uint8_t progbase[USERMEM];
 /* We need a tidier way to do this from the loader */
 #define CMDLINE	NULL	  /* Location of root dev name */
 
-#define BOOTDEVICE 0x0000 /* hda */
+//njh#define BOOTDEVICE 0x0000 /* hda */
+#define BOOTDEVICE 0x0012 /* hdb2 */
+//njh#define SWAPDEV    0x0011 /* hdb1 */
 #define SWAPDEV    (swap_dev) /* dynamic swap */
 
 /* Device parameters */
