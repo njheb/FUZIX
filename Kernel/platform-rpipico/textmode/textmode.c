@@ -15,9 +15,6 @@
 #include "font.h"
 
 //#include "textmode.h"
-//#include "printf.h" no kprintf available clash between cores
-#define printf(...)
-//#define calloc kmalloc
 
 // set this to 3, 4 or 5 for smallest to biggest font
 #define FRAGMENT_WORDS 4
@@ -196,27 +193,88 @@ volatile uint32_t scanline_color = 0;
 int8_t pad[65536];  //njh not sure if this is necessary, working without so far
 #endif
 #if PICO_ON_DEVICE
-//debug kernel
-/*
-uint32_t *font_raw_pixels;
+//uint32_t *font_raw_pixels;
+//extern uint32_t rawfont[5700];
+//uint32_t *font_raw_pixels = &rawfont[0];
+//uint32_t *font_raw_pixels;
+extern uint32_t unique_raster[1940];
+extern uint16_t rawfont_lut[1425];
+//uint32_t compose[FRAGMENT_WORDS*81]; //work around for keeping font in flash
+//uncompressed rawfont in use just to check timing will be ok
+//not needed with compressed uint32_t* lut[1425];//check sizeof(rawfont)/4 
 #else
-*/
-//njh grabbing 23K from USERMEM leads to exception, so not that simple 
-uint32_t font_raw_pixels[5700]; //just to get it compiling  //njh was being overflowed when 16384
-//uint32_t font_raw_pixels[22800];  //njh was being overflowed when 16384
-//njh would be nice to come up with a more compact format for font
+uint32_t font_raw_pixels[16384];
 #endif
 #define FONT_WIDTH_WORDS FRAGMENT_WORDS
-#if FRAGMENT_WORDS == 5
-const lv_font_t *font = &ubuntu_mono10;
-//const lv_font_t *font = &lcd;
-#elif FRAGMENT_WORDS == 4
-const lv_font_t *font = &ubuntu_mono8;
-#else
-const lv_font_t *font = &ubuntu_mono6;
-#endif
-#define FONT_HEIGHT (font->line_height)
+//#define FONT_HEIGHT (font->line_height)
+#define FONT_HEIGHT (15)
 #define FONT_SIZE_WORDS (FONT_HEIGHT * FONT_WIDTH_WORDS)
+
+/*
+//njh quick hack to get raw_font_pixels for rom-ing
+void dump_font() {
+    uint16_t colors[16];
+    for (int i = 0; i < count_of(colors); i++) {
+        colors[i] = PICO_SCANVIDEO_PIXEL_FROM_RGB5(1, 1, 1) * ((i * 3) / 2);
+        if (i) i != 0x8000;
+    }
+    printf("@@colours:");
+    for (int i = 0; i < count_of(colors); i++) {
+	printf("%4x,", colors[i]);
+    }
+    printf("\nuint32_t rawfont[]={\n");
+#if PICO_ON_DEVICE
+    font_raw_pixels = (uint32_t *) calloc(4, font->dsc->cmaps->range_length * FONT_SIZE_WORDS);
+#endif
+    uint32_t *p = font_raw_pixels;
+    assert(font->line_height == FONT_HEIGHT);
+    for (int c = 0; c < font->dsc->cmaps->range_length; c++) {
+        printf("\n@<%c@>\n", c+32);
+        // inefficient but simple
+        const lv_font_fmt_txt_glyph_dsc_t *g = &font->dsc->glyph_dsc[c + 1];
+        const uint8_t *b = font->dsc->glyph_bitmap + g->bitmap_index;
+        int bi = 0;
+        for (int y = 0; y < FONT_HEIGHT; y++) {
+            int ey = y - FONT_HEIGHT + font->base_line + g->ofs_y + g->box_h;
+            printf("\n\t");
+
+            for (int x = 0; x < FONT_WIDTH_WORDS * 2; x++) {
+                uint32_t pixel;
+                int ex = x - g->ofs_x;
+                if (ex >= 0 && ex < g->box_w && ey >= 0 && ey < g->box_h) {
+                    pixel = bi & 1 ? colors[b[bi >> 1] & 0xf] : colors[b[bi >> 1] >> 4];
+                    bi++;
+                } else {
+                    pixel = 0;
+                }
+//                printf("%d", !!pixel);
+//                uint q = 7 - (c%7);
+//                pixel =  (q&4)*0x0f00 + (q&2) * 0x0f0 + (q&1)*0x0f;
+//                if ((c%16) == 1 || (c%16) == 2) pixel = 0xffff;
+		uint32_t *oldp=p;
+                if (!(x & 1)) {
+                    *p = pixel;
+                } else {
+                    *p++ |= pixel << 16;
+		    printf("0x%08X, ",*oldp);
+
+                }
+            }
+            if (ey >= 0 && ey < g->box_h) {
+                for (int x = FONT_WIDTH_WORDS * 2 - g->ofs_x; x < g->box_w; x++) {
+                    bi++;
+                }
+            }
+
+	    printf("\n");
+//            printf("\n");
+        }
+//        printf("\n");
+    }
+    printf("}; @<End of rawfont@>\n");
+
+    printf("%p %p\n", p, font_raw_pixels + font->dsc->cmaps->range_length * FONT_SIZE_WORDS);
+}
 
 void build_font() {
     uint16_t colors[16];
@@ -225,7 +283,7 @@ void build_font() {
         if (i) i != 0x8000;
     }
 #if PICO_ON_DEVICE
-//debug kernel    font_raw_pixels = (uint32_t *) calloc(4, font->dsc->cmaps->range_length * FONT_SIZE_WORDS);
+    font_raw_pixels = (uint32_t *) calloc(4, font->dsc->cmaps->range_length * FONT_SIZE_WORDS);
 #endif
     uint32_t *p = font_raw_pixels;
     assert(font->line_height == FONT_HEIGHT);
@@ -267,6 +325,7 @@ void build_font() {
     }
     printf("%p %p\n", p, font_raw_pixels + font->dsc->cmaps->range_length * FONT_SIZE_WORDS);
 }
+*/
 
 /*scaled for middle sized font*/
 char message_text[32][81] = {
@@ -277,6 +336,8 @@ char message_text[32][81] = {
 "4Another Line",
 "#1234567890123456789012345678901234567890123456789012345678901234567890123456",
 "00000000001111111111222222222233333333334444444444555555555566666666667777777",
+"DD",
+"!\"#$%&'()*+,-.",
 "",
 };
 
@@ -318,7 +379,48 @@ int video_main(void) {
     // go for launch (debug pin)
     gpio_put(24, 1);
 #endif
-    build_font();
+//    build_font();
+//    dump_font();  //don't use dump post build instead
+//    font_raw_pixels = (uint32_t *) calloc(4, 16384);
+//    uint32_t* rawp = &rawfont[0];
+    int idx=0;
+#if 0
+    for (int c = 0; c < font->dsc->cmaps->range_length; c++) {
+        // inefficient but simple
+        printf("\n@<%c@>\n", c+32);
+        for (int y=0; y<15; y++){
+	    printf("\t");
+	    for (int x=0; x<4; x++){
+	    printf("0x%08X, ",font_raw_pixels[idx++]);
+	    }
+	    printf("\n");
+	}
+    }
+    printf("count:%d",idx);
+#endif
+#if 0
+    for (int i = 0; i<(4*15); i++)
+    {
+	//font_raw_pixels[i+(2*(4*15))]=0x00ff0000; //red black
+	//font_raw_pixels[i+(3*(4*15))]=0x0000ff00; //black cyan
+	//font_raw_pixels[i+(4*(4*15))]=0x000000ff; //black red+transparent
+	//font_raw_pixels[i+(5*(4*15))]=0x00ff00ff; //red-solid+transparent
+	//font_raw_pixels[i+(6*(4*15))]=0xff00ff00; //cyan-solid
+	font_raw_pixels[i+(7*(4*15))]=0xf000f000; //blue
+	font_raw_pixels[i+(8*(4*15))]=0x0f000f00; //green
+	font_raw_pixels[i+(9*(4*15))]=0x00f000f0; //red
+	font_raw_pixels[i+(2*(4*15))]=font_raw_pixels[i+(('A'-' ')*(4*15))];
+//	font_raw_pixels[i+(3*(4*15))]=rawfont[i+(('A'-' ')*(4*15))];
+    }
+#endif
+#if 0
+//simple uncompressed test just to see if timings will be ok
+	for (int lutidx=0; lutidx<1425; lutidx++)
+		lut[lutidx]=&unique_raster[rawfont_lut[lutidx]*4];
+//		lut[lutidx]=&rawfont[lutidx*4];
+#endif
+
+
     sem_init(&video_setup_complete, 0, 1);
 #ifndef IRQS_ON_CORE1
     setup_video();
@@ -355,9 +457,7 @@ void init_render_state(int core) {
 }
 
 #if PICO_SCANVIDEO_PLANE1_FRAGMENT_DMA
-//njhstatic __not_in_flash("x") uint16_t beginning_of_line[] = {
-//njh looking for textbuffer crash, don't "corrupt" flash
-static __not_in_flash("y") uint16_t beginning_of_line[] = {
+static __not_in_flash("x") uint16_t beginning_of_line[] = {
         // todo we need to be able to shift scanline to absorb these extra pixels
 #if FRAGMENT_WORDS == 5
         COMPOSABLE_RAW_1P, 0,
@@ -405,7 +505,9 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 //(320/FRAGMENT_WORDS)
     *output++ = 2 + COUNT * 2 * FRAGMENT_WORDS - 3;
     *output++ = 0;
-    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
+//    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
+//njh this is not right but quick hack to remove font_raw_pixels
+    uint32_t *dbase = unique_raster + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
     for(int i=0;i<COUNT;i++) {
         int ch = 33 + i;
         uint32_t *data = (uint16_t *)(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
@@ -458,8 +560,8 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
     *output32++ = FRAGMENT_WORDS;
 #endif
     *output32++ = host_safe_hw_ptr(beginning_of_line);
-    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
-    int cmax = font->dsc->cmaps[0].range_length;
+//    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
+//    int cmax = font->dsc->cmaps[0].range_length;
     int ch = 0;
 
 //    __breakpoint();
@@ -487,7 +589,11 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
         *output32++ = FRAGMENT_WORDS;
 #endif
-        *output32++ = host_safe_hw_ptr(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
+//        *output32++ = host_safe_hw_ptr(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
+//	  *output32++ = host_safe_hw_ptr(lut[ch*15+(y%15)]);
+//switch to not using lut of pointers
+	  *output32++ = host_safe_hw_ptr(&unique_raster[rawfont_lut[ch*15+(y%15)]*4]);
+
     }
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
     *output32++ = FRAGMENT_WORDS;
@@ -566,7 +672,7 @@ void init_for_main(void)
 {
     setup_default_uart();
     printf("TEST UART1\n");
-    for (int k=7; k<32; k++) {
+    for (int k=9; k<32; k++) {
         message_text[k][0]=(k/10)+'0';
         message_text[k][1]=(k%10)+'0';
         message_text[k][2]='\0';
@@ -614,19 +720,19 @@ int main(void) {
 //    setup_default_uart();
     stdio_init_all();
     printf("TEST UART1\n");
-    for (int k=7; k<32; k++) {
+    for (int k=9; k<32; k++) {
         message_text[k][0]=(k/10)+'0';
         message_text[k][1]=(k%10)+'0';
         message_text[k][2]='\0';
     }
 
-//#if !PICO_ON_DEVICE
+#if !PICO_ON_DEVICE
     #include <math.h>
         for(int i = 0; i<64;i++) {
             printf("%d, ", (int)(0x7f*cos(i*M_PI/32)));
         }
         printf("\n");
-//#endif
+#endif
 
 //mjh    return video_main();
    (void)video_main();
