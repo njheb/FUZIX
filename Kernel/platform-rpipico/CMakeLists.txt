@@ -81,6 +81,7 @@ target_sources(fuzix PRIVATE
 	./textmode/textmode.c
         ./textmode/textmode.h
 	./textmode/font8.c
+        ./textmode/compressed_rawfont8.c
 )
 
     target_compile_definitions(fuzix PRIVATE
