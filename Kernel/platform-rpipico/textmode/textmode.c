@@ -140,17 +140,62 @@ void render_loop() {
 extern bool scanvideo_in_vblank();
 	if (scanvideo_in_vblank() == true)
 	{
+		static int xpos=3;
+		static int ypos=8;
+		static char c='!';
 		static int counter=0;
 		static int seconds;
 		counter++;
 		seconds=counter/60;
-		if ((counter%60)==0) 
+		if ((counter%30)==0)
 		{
+		  message_text[ypos][2]=' ';
+
+//todo:having seen line length effect set up a grid of chars once rather than on the fly
+
+//usb startup clobbers display
+//effect of writing long lines causing raster blank offers some hope for compressed font being able to work
+//just noticed testing with counter%30
+//
+//
+//<15 ok except some disruption
+//<30 ok except some disruption to top six lines, perhaps because they are long
+//<60 stable when no input/output
+//<64 stable when no i/o
+//<65 stable when no i/o
+//<67 lower third flicker when no i/o
+//<70 lower third flicker when no i/o
+//<75 not stable when no i/o
+//<76 not stable when no input/output
+//this is turning into zx81 style fast/slow mode
+		  for (int i=xpos; i<15; i++) //<15 ok //30 ok
+			message_text[ypos][i]=c;
+		  ypos++;
+		  c++;
+		  if (ypos==32) ypos=8;
+		  if (c>'~') c ='!';
 		  snprintf(&message_text[7][0],10,"%3d", seconds);
 		}
+
 	  	//snprintf(&message_text[9][0],10,"%09d", counter);
         tud_task();
         cdc_task();
+#define CRUDE_SPEEDUP
+#ifdef CRUDE_SPEEDUP
+//x2 slight disruption, line 6 totally knocked out when busy        cdc_task();
+/*
+//4 calls causes some disruption
+        cdc_task();
+        cdc_task();
+*/
+/*
+//8 calls causes some disruption
+        cdc_task();
+        cdc_task();
+        cdc_task();
+        cdc_task();
+*/
+#endif
 	}
 #endif //USE_SERIAL_ONLY
         mutex_enter_blocking(&frame_logic_mutex);
