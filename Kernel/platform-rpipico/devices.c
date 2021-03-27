@@ -82,7 +82,9 @@ void device_init(void)
     hardware_alarm_set_callback(0, timer_tick_cb);
     timer_tick_cb(0);
 //njh
-   (void)video_main();
+//njh have to move this forward  (void)video_main();
+//njh hope the problem with flash_dev_init starting after has been fixed
+//njh by the di() ei() wrapping in there now
 }
 
 /* vim: sw=4 ts=4 et: */

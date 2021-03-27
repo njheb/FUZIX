@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
+#include <tusb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico.h"
@@ -14,6 +14,7 @@
 #include "pico/sync.h"
 #include "font.h"
 
+#include "core1.h"
 //#include "textmode.h"
 //#include "printf.h" no kprintf available clash between cores
 #define printf(...)
@@ -130,8 +131,8 @@ void render_loop() {
         // do any frame related logic
         // todo probably a race condition here ... thread dealing with last line of a frame may end
         // todo up waiting on the next frame...
-#define PRE_USB_TEST
-#ifdef PRE_USB_TEST
+
+#ifndef USE_SERIAL_ONLY
 //this leaves a stable display, next see if there is time to run tud_task
 //and handle cdc requirements
 //don't know if 60Hz will service tud_task frequently enough for host end
@@ -147,10 +148,11 @@ extern bool scanvideo_in_vblank();
 		{
 		  snprintf(&message_text[7][0],10,"%3d", seconds);
 		}
-	  	snprintf(&message_text[9][0],10,"%09d", counter);
-
+	  	//snprintf(&message_text[9][0],10,"%09d", counter);
+        tud_task();
+        cdc_task();
 	}
-#endif //PRE_USB_TEST
+#endif //USE_SERIAL_ONLY
         mutex_enter_blocking(&frame_logic_mutex);
         uint32_t frame_num = scanvideo_frame_number(scanline_buffer->scanline_id);
         // note that with multiple cores we may have got here not for the first scanline, however one of the cores will do this logic first before either does the actual generation
@@ -211,6 +213,9 @@ void setup_video() {
 }
 
 void core1_func() {
+#ifndef USE_SERIAL_ONLY
+    tusb_init();
+#endif    
 #ifdef IRQS_ON_CORE1
     setup_video();
 #endif
@@ -585,7 +590,14 @@ void go_core1(void (*execute)()) {
 
 void init_for_main(void)
 {
-    setup_default_uart();
+//    setup_default_uart();
+//graft in code from core1.c
+    uart_init(uart_default, PICO_DEFAULT_UART_BAUD_RATE);
+    gpio_set_function(PICO_DEFAULT_UART_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(PICO_DEFAULT_UART_RX_PIN, GPIO_FUNC_UART);
+    uart_set_translate_crlf(uart_default, false);
+    uart_set_fifo_enabled(uart_default, true);
+
     printf("TEST UART1\n");
     for (int k=7; k<32; k++) {
         message_text[k][0]=(k/10)+'0';

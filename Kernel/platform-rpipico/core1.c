@@ -33,6 +33,9 @@ void usbconsole_putc_blocking(uint8_t b)
 	multicore_fifo_push_blocking(b);
 }
 
+//overloading the use of USE_SERIAL_ONLY for the moment
+//only interested in the effect of #undef USE_SERIAL_ONLY
+#ifdef USE_SERIAL_ONLY
 static void core1_main(void)
 {
     uart_init(uart_default, PICO_DEFAULT_UART_BAUD_RATE);
@@ -46,6 +49,22 @@ static void core1_main(void)
 	for (;;)
 	{
 		tud_task();
+
+#else
+/*
+ don't forget 
+
+    tusb_init();
+		tud_task();
+
+NB board_init(); not needed
+check if crlf translate already setup or needed?
+*/
+
+void cdc_task(void)
+{
+#endif //USE_SERIAL_ONLY
+
 
 		if (multicore_fifo_rvalid()
 			&& (!tud_cdc_connected() || tud_cdc_write_available())
@@ -83,11 +102,17 @@ static void core1_main(void)
 				multicore_fifo_push_blocking(b);
 			}
 		}
+#ifdef USE_SERIAL_ONLY
 	}
 }
+#else
+}
+#endif // USE_SERIAL_ONLY
 
+#ifdef USE_SERIAL_ONLY
 void core1_init(void)
 {
 	multicore_launch_core1(core1_main);
 }
+#endif
 

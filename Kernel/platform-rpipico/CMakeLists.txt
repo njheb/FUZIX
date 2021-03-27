@@ -46,8 +46,8 @@ target_sources(fuzix PRIVATE
 	swapper.c
 	tricks.S
 #ifndef USE_SERIAL_ONLY 
-#njh	core1.c
-#njh	usbdescriptors.c
+	core1.c
+	usbdescriptors.c
 #endif
 	../dev/blkdev.c
 	../dev/mbr.c
@@ -79,7 +79,7 @@ target_sources(fuzix PRIVATE
 	../usermem.c
 	../version.c
 	./textmode/textmode.c
-        ./textmode/textmode.h
+#    ./textmode/textmode.h
 	./textmode/font8.c
 )
 
@@ -96,9 +96,9 @@ target_link_libraries(fuzix
 #	hardware_spi
 	hardware_uart
 #       hardware_timer
-        hardware_pio
-#njh	tinyusb_device_unmarked
-#njh	tinyusb_board
+    hardware_pio
+	tinyusb_device_unmarked
+	tinyusb_board
 	pico_scanvideo_dpi
 )
 

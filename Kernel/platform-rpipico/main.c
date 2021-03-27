@@ -47,7 +47,9 @@ int main(void)
 #ifdef USE_SERIAL_ONLY
    tty_rawinit(); 
 #else
-   core1_init();
+    init_for_main(); //set up uart1, graft in code from core1 uart init
+    (void)video_main();
+//   core1_init();
 #endif
 
 	if ((U_DATA__U_SP_OFFSET != offsetof(struct u_data, u_sp)) ||
