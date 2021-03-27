@@ -43,6 +43,17 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core);
 //njh move this to a header and make sure to kick off after UART1 setup 
 //in FUZIX
 int video_main(void);
+/*scaled for middle sized font*/
+char message_text[32][81] = {
+"0#############offscreen",
+"1#############lower half visible",
+"2The quick brown fox jumped over the Lazy dog.....012345678901234567890123456",
+"3#############",
+"4Another Line",
+"#1234567890123456789012345678901234567890123456789012345678901234567890123456",
+"00000000001111111111222222222233333333334444444444555555555566666666667777777",
+"",
+};
 
 #define vga_mode vga_mode_640x480_60
 //#define vga_mode vga_mode_320x240_60
@@ -119,6 +130,27 @@ void render_loop() {
         // do any frame related logic
         // todo probably a race condition here ... thread dealing with last line of a frame may end
         // todo up waiting on the next frame...
+#define PRE_USB_TEST
+#ifdef PRE_USB_TEST
+//this leaves a stable display, next see if there is time to run tud_task
+//and handle cdc requirements
+//don't know if 60Hz will service tud_task frequently enough for host end
+//not to complain
+extern bool scanvideo_in_vblank();
+	if (scanvideo_in_vblank() == true)
+	{
+		static int counter=0;
+		static int seconds;
+		counter++;
+		seconds=counter/60;
+		if ((counter%60)==0) 
+		{
+		  snprintf(&message_text[7][0],10,"%3d", seconds);
+		}
+	  	snprintf(&message_text[9][0],10,"%09d", counter);
+
+	}
+#endif //PRE_USB_TEST
         mutex_enter_blocking(&frame_logic_mutex);
         uint32_t frame_num = scanvideo_frame_number(scanline_buffer->scanline_id);
         // note that with multiple cores we may have got here not for the first scanline, however one of the cores will do this logic first before either does the actual generation
@@ -268,17 +300,6 @@ void build_font() {
     printf("%p %p\n", p, font_raw_pixels + font->dsc->cmaps->range_length * FONT_SIZE_WORDS);
 }
 
-/*scaled for middle sized font*/
-char message_text[32][81] = {
-"0#############offscreen",
-"1#############lower half visible",
-"2The quick brown fox jumped over the Lazy dog.....012345678901234567890123456",
-"3#############",
-"4Another Line",
-"#1234567890123456789012345678901234567890123456789012345678901234567890123456",
-"00000000001111111111222222222233333333334444444444555555555566666666667777777",
-"",
-};
 
 int video_main(void) {
 

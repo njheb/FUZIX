@@ -18,7 +18,7 @@ build/fuzix.elf: ../version.c build/Makefile
 ../version.c:
 	$(MAKE) -C .. TARGET=rpipico version.c
 
-build/Makefile: CMakeLists.txt $(wildcard ../*.[chS]) $(wildcard ../*/*.[chS])
+build/Makefile: CMakeLists.txt $(wildcard ../*.[chS]) $(wildcard ../*/*.[chS]) $(wildcard ./textmode/*.[ch])
 	mkdir -p build
 	(cd build && cmake -D"PICO_BOARD=$(PICO_BOARD_KIND)" .. )
 #	(cd build && cmake -D"PICO_BOARD=vgaboard" ..)
