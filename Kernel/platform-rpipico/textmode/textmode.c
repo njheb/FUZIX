@@ -48,11 +48,13 @@ int video_main(void);
 char message_text[32][81] = {
 "0#############offscreen",
 "1#############lower half visible",
-"2The quick brown fox jumped over the Lazy dog.....012345678901234567890123456",
+"2The quick brown fox jumped over the Lazy dog.....01234567890123",
 "3#############",
 "4Another Line",
 "#1234567890123456789012345678901234567890123456789012345678901234567890123456",
 "00000000001111111111222222222233333333334444444444555555555566666666667777777",
+//"#123456789012345678901234567890123456789012345678901234567890123",
+//"0000000000111111111122222222223333333333444444444455555555556666",
 "",
 };
 
@@ -140,6 +142,7 @@ void render_loop() {
 extern bool scanvideo_in_vblank();
 	if (scanvideo_in_vblank() == true)
 	{
+		static bool once=false;
 		static int xpos=3;
 		static int ypos=8;
 		static char c='!';
@@ -147,9 +150,9 @@ extern bool scanvideo_in_vblank();
 		static int seconds;
 		counter++;
 		seconds=counter/60;
-		if ((counter%30)==0)
+		if ((counter%60)==0)
 		{
-		  message_text[ypos][2]=' ';
+		 // message_text[ypos][2]=' ';
 
 //todo:having seen line length effect set up a grid of chars once rather than on the fly
 
@@ -168,26 +171,41 @@ extern bool scanvideo_in_vblank();
 //<75 not stable when no i/o
 //<76 not stable when no input/output
 //this is turning into zx81 style fast/slow mode
-		  for (int i=xpos; i<15; i++) //<15 ok //30 ok
-			message_text[ypos][i]=c;
-		  ypos++;
-		  c++;
-		  if (ypos==32) ypos=8;
-		  if (c>'~') c ='!';
-		  snprintf(&message_text[7][0],10,"%3d", seconds);
-		}
+//once <76 not stable with no i/o
+//once <67 stable with no i/o
+//once <75 flicker bottom 2 thirds when no i/o
+//once <70 flicker bottem third when no i/o
+//once <65 stable when no i/o
+		if (once==false)
+		{
+		 for (ypos=8; ypos < 32; ypos++)
+		 {
+		  message_text[ypos][2]=' ';
 
+		  for (int i=xpos; i<65; i++) //<15 ok //30 ok in previous commit when on the fly
+			message_text[ypos][i]=c;
+		  //ypos++;
+		  c++;
+		  //if (ypos==32) ypos=8;
+		  //if (c>'~') c ='!';
+         }
+		
+		once=true; 
+        }
+	  	snprintf(&message_text[7][0],10,"%3d", seconds);
+      }
 	  	//snprintf(&message_text[9][0],10,"%09d", counter);
         tud_task();
         cdc_task();
 #define CRUDE_SPEEDUP
 #ifdef CRUDE_SPEEDUP
-//x2 slight disruption, line 6 totally knocked out when busy        cdc_task();
-/*
+//x2 slight disruption, line 6 totally knocked out when busy        
+cdc_task();
+
 //4 calls causes some disruption
+       cdc_task();
         cdc_task();
-        cdc_task();
-*/
+
 /*
 //8 calls causes some disruption
         cdc_task();
