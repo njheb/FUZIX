@@ -200,11 +200,11 @@ extern bool scanvideo_in_vblank();
 #define CRUDE_SPEEDUP
 #ifdef CRUDE_SPEEDUP
 //x2 slight disruption, line 6 totally knocked out when busy        
-//cdc_task();
+	cdc_task();
 
 //4 calls causes some disruption
-//       cdc_task();
-//        cdc_task();
+       cdc_task();
+       cdc_task();
 
 /*
 //8 calls causes some disruption
@@ -576,7 +576,8 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
         *output32++ = FRAGMENT_WORDS;
 #endif
-        *output32++ = host_safe_hw_ptr(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
+//        *output32++ = host_safe_hw_ptr(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
+        *output32++ = host_safe_hw_ptr(dbase + ch * 60);
     }
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
     *output32++ = FRAGMENT_WORDS;
