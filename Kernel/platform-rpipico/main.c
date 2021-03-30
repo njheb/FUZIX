@@ -50,7 +50,10 @@ int main(void)
 #else
     init_for_main(); //set up uart1, graft in code from core1 uart init
     (void)video_main();
-    sleep_ms(1000);
+    sleep_ms(1000);//could be shorter than 1000ms, 750ms too short
+    kprintf("Try USB\n"); //should be able to detect if host is there or not
+    sleep_ms(1500);      //right now just dumb wait so that 2nd and subsequent
+			//minicom sessions will capture output
 /*
     char buffer[]="Hello!";
     for (int i=0; i<sizeof(buffer); )
