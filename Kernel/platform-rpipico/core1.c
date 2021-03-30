@@ -61,7 +61,7 @@ NB board_init(); not needed
 check if crlf translate already setup or needed?
 */
 
-
+static const int xmax=76;
 //14 ''''''''t (c) 2014-2020 Alan Cox...etc
 void cdc_task(void)
 {
@@ -113,7 +113,7 @@ extern char message_text[32][81];
 			{
 			    xpos--;
 			    if (xpos==2) xpos=3;
-//			  for (int i=3; i<64;i++)
+//			  for (int i=3; i<xmax;i++)
 //			      message_text[ypos][i]='@';
 			}
 #endif
@@ -133,7 +133,7 @@ extern char message_text[32][81];
 			else
 				xpos++;
 
-			if (xpos > 64)
+			if (xpos > xmax)
 			{
 			  xpos = 3;
 			  ypos++;
