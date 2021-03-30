@@ -61,25 +61,89 @@ NB board_init(); not needed
 check if crlf translate already setup or needed?
 */
 
+
+//14 ''''''''t (c) 2014-2020 Alan Cox...etc
 void cdc_task(void)
 {
 #endif //USE_SERIAL_ONLY
+static bool first = false;
+static int test=0;
+static int xpos = 3;
+static int ypos = 8;
+extern char message_text[32][81];
 
+		if (first==false)
+		{
+		  first = true;
+		  test = ypos;
+		  message_text[4][12]='0'+test;
+		}
 
-		if (multicore_fifo_rvalid()
-			&& (!tud_cdc_connected() || tud_cdc_write_available())
-			&& uart_is_writable(uart_default))
+//		if (multicore_fifo_rvalid()
+//			&& (!tud_cdc_connected() || tud_cdc_write_available())
+//			&& uart_is_writable(uart_default))
+
+//		if ( (multicore_fifo_rvalid() && (tud_cdc_connected() && tud_cdc_write_available()) )
+//		     ||
+//		     (multicore_fifo_rvalid() && uart_is_writable(uart_default)) )
+
+		if ( (multicore_fifo_rvalid())
+		     ||
+		     (multicore_fifo_rvalid() && uart_is_writable(uart_default)) )
 		{
 			int b = multicore_fifo_pop_blocking();
+			uint8_t c;
+			c=(uint8_t)b;
 
-			if (tud_cdc_connected())
+			if (tud_cdc_connected() && tud_cdc_write_available())
 			{
-				tud_cdc_write(&b, 1);
+//				tud_cdc_write(&b, 1);
+				tud_cdc_write_char(c);
 				tud_cdc_write_flush();
 			}
-			
-			uart_putc(uart_default, b);
+
+//			uart_putc(uart_default, b);
+			if (uart_is_writable(uart_default))
+				uart_putc(uart_default, c);
+
+			if (!(c=='\r' || c=='\n'))
+			    message_text[ypos][xpos]=c;
+#if 0
+			if (c==127)
+			{
+			    xpos--;
+			    if (xpos==2) xpos=3;
+//			  for (int i=3; i<64;i++)
+//			      message_text[ypos][i]='@';
+			}
+#endif
+			if (c == '\r') 
+			{
+			    xpos=3;
+			}
+			else if (c == '\n')
+			{ 
+			    ypos++;
+			    if (ypos > 31) ypos=8;
+			    message_text[4][13]='0'+ypos/10;
+			    message_text[4][14]='0'+ypos%10;
+			    message_text[4][15]=' ';
+
+			}
+			else
+				xpos++;
+
+			if (xpos > 64)
+			{
+			  xpos = 3;
+			  ypos++;
+			  if (ypos>31) ypos = 8;
+			    message_text[4][16]='0'+ypos/10;
+			    message_text[4][17]='0'+ypos%10;
+			}
+
 		}
+			
 
 		if (multicore_fifo_wready()
 			&& ((tud_cdc_connected() && tud_cdc_available())
@@ -93,10 +157,11 @@ void cdc_task(void)
 			{
 				uint8_t b;
 				int count = tud_cdc_read(&b, 1);
-				if (count)
+				if (count==1)
 					multicore_fifo_push_blocking(b);
 			}
-			else if (uart_is_readable(uart_default))
+//			else if (uart_is_readable(uart_default))
+			if (uart_is_readable(uart_default) && multicore_fifo_wready())
 			{
 				uint8_t b = uart_get_hw(uart_default)->dr;
 				multicore_fifo_push_blocking(b);

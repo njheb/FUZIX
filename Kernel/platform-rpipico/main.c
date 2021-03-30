@@ -1,3 +1,4 @@
+#include "pico/stdlib.h"
 #include <kernel.h>
 #include <kdata.h>
 #include "picosdk.h"
@@ -49,6 +50,17 @@ int main(void)
 #else
     init_for_main(); //set up uart1, graft in code from core1 uart init
     (void)video_main();
+    sleep_ms(1000);
+/*
+    char buffer[]="Hello!";
+    for (int i=0; i<sizeof(buffer); )
+    {
+	if (usbconsole_is_writable())
+		usbconsole_putc_blocking(buffer[i++]);
+	//this makes it to the uart
+	//but not to the vga text_buffer or usb comport
+    }
+*/
 //   core1_init();
 #endif
 

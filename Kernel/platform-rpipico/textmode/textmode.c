@@ -200,11 +200,11 @@ extern bool scanvideo_in_vblank();
 #define CRUDE_SPEEDUP
 #ifdef CRUDE_SPEEDUP
 //x2 slight disruption, line 6 totally knocked out when busy        
-cdc_task();
+//cdc_task();
 
 //4 calls causes some disruption
-       cdc_task();
-        cdc_task();
+//       cdc_task();
+//        cdc_task();
 
 /*
 //8 calls causes some disruption
