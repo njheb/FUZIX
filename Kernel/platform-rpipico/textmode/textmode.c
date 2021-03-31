@@ -154,6 +154,11 @@ extern bool scanvideo_in_vblank();
 		{
 		 // message_text[ypos][2]=' ';
 
+
+//IMPORTANT found an optimization that gets rid of display loss during FUZIX work
+//at least at the only screen resolution tested so far.
+//see "const int speedup" use in building raster
+
 //todo:having seen line length effect set up a grid of chars once rather than on the fly
 
 //usb startup clobbers display
@@ -182,7 +187,8 @@ extern bool scanvideo_in_vblank();
 		 {
 		  message_text[ypos][2]=' ';
 
-		  for (int i=xpos; i<65; i++) //<15 ok //30 ok in previous commit when on the fly
+//		  for (int i=xpos; i<65; i++) //<15 ok //30 ok in previous commit when on the fly
+		  for (int i=xpos; i<75; i++) //<15 ok //30 ok in previous commit when on the fly
 			message_text[ypos][i]=c;
 		  //ypos++;
 		  c++;
@@ -206,13 +212,13 @@ extern bool scanvideo_in_vblank();
        cdc_task();
        cdc_task();
 
-/*
+
 //8 calls causes some disruption
         cdc_task();
         cdc_task();
         cdc_task();
         cdc_task();
-*/
+
 #endif
 	}
 #endif //USE_SERIAL_ONLY
@@ -309,15 +315,17 @@ uint32_t font_raw_pixels[5700]; //just to get it compiling  //njh was being over
 #define FONT_WIDTH_WORDS FRAGMENT_WORDS
 #if FRAGMENT_WORDS == 5
 const lv_font_t *font = &ubuntu_mono10;
+const int speedup = //?; 
 //const lv_font_t *font = &lcd;
 #elif FRAGMENT_WORDS == 4
 const lv_font_t *font = &ubuntu_mono8;
+const int speedup = 60; //line_height*FONT_WIDTH_WORDS 
 #else
 const lv_font_t *font = &ubuntu_mono6;
+const int speedup = //?; 
 #endif
 #define FONT_HEIGHT (font->line_height)
 #define FONT_SIZE_WORDS (FONT_HEIGHT * FONT_WIDTH_WORDS)
-
 void build_font() {
     uint16_t colors[16];
     for (int i = 0; i < count_of(colors); i++) {
@@ -478,6 +486,7 @@ static __not_in_flash("y") uint16_t end_of_line[] = {
 
 bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
     // 1 + line_num red, then white
+
     uint32_t *buf = dest->data;
     size_t buf_length = dest->data_max;
     int y = scanvideo_scanline_number(dest->scanline_id) + vpos;
@@ -577,7 +586,8 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
         *output32++ = FRAGMENT_WORDS;
 #endif
 //        *output32++ = host_safe_hw_ptr(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
-        *output32++ = host_safe_hw_ptr(dbase + ch * 60);
+//        *output32++ = host_safe_hw_ptr(dbase + ch * 60);
+        *output32++ = host_safe_hw_ptr(dbase + ch * speedup);
     }
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
     *output32++ = FRAGMENT_WORDS;

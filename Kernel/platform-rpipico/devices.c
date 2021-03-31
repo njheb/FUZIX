@@ -88,15 +88,15 @@ void device_init(void)
     update_us_since_boot(&now, time_us_64());
 
     hardware_alarm_set_callback(0, timer_tick_cb); 
-	usbconsole_putc_blocking('{');
-   //njh disable this line---> timer_tick_cb(0); //spurious char here
-        timer_tick_cb_body(0); //improvising
 
-	usbconsole_putc_blocking('}');
     	while (usbconsole_is_readable())
     	{
         	uint8_t c = usbconsole_getc_blocking();
 	}
+
+    timer_tick_cb(0); //spurious char here
+       // timer_tick_cb_body(0); //improvising
+
 //njh
 //njh have to move this forward  (void)video_main();
 //njh hope the problem with flash_dev_init starting after has been fixed

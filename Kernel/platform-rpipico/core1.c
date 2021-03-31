@@ -106,17 +106,9 @@ extern char message_text[32][81];
 			if (uart_is_writable(uart_default))
 				uart_putc(uart_default, c);
 
-			if (!(c=='\r' || c=='\n'))
+			if (!(c=='\r' || c=='\n' || c==8))
 			    message_text[ypos][xpos]=c;
-#if 0
-			if (c==127)
-			{
-			    xpos--;
-			    if (xpos==2) xpos=3;
-//			  for (int i=3; i<xmax;i++)
-//			      message_text[ypos][i]='@';
-			}
-#endif
+
 			if (c == '\r') 
 			{
 			    xpos=3;
@@ -130,6 +122,13 @@ extern char message_text[32][81];
 			    message_text[4][15]=' ';
 
 			}
+			else if (c==8)
+			{
+			    xpos--;
+			    if (xpos==2) xpos=3;
+
+			    message_text[ypos][xpos]=' ';
+			} 
 			else
 				xpos++;
 
@@ -152,20 +151,45 @@ extern char message_text[32][81];
 			/* Only service a byte from CDC *or* the UART, in case two show
 			 * up at the same time and we end up blocking. No big loss, the
 			 * next one will be read the next time around the loop. */
-
+			static int c;
 			if (tud_cdc_available())
 			{
-				uint8_t b;
+				uint8_t b; c=-1;
 				int count = tud_cdc_read(&b, 1);
 				if (count==1)
+				{
 					multicore_fifo_push_blocking(b);
+					c=b;
+				}
 			}
 //			else if (uart_is_readable(uart_default))
 			if (uart_is_readable(uart_default) && multicore_fifo_wready())
 			{
-				uint8_t b = uart_get_hw(uart_default)->dr;
+				uint8_t b = uart_get_hw(uart_default)->dr; c=b;
 				multicore_fifo_push_blocking(b);
 			}
+#if 1
+			if (c!=-1)
+			{
+			  static char hexdig[]="0123456789abcdef";
+			  message_text[4][15]=' ';
+			  message_text[4][16]=' ';
+			  message_text[4][17]=' ';
+			  message_text[4][18]=hexdig[(c>>4)&0xF];
+			  message_text[4][19]=hexdig[c&0x0F];
+			}
+#if 0
+			if (c==8)
+			{
+			    xpos--;
+			    if (xpos==2) xpos=3;
+
+			    message_text[ypos][xpos]=' ';
+			    c=-1; //not strictly needed
+			}
+#endif
+#endif
+
 		}
 #ifdef USE_SERIAL_ONLY
 	}
