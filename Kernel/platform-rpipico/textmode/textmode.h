@@ -23,6 +23,7 @@
 void init_for_main(void);
 void demo_for_main(void);
 int video_main(void);
-extern char message_text[32][81];
+//extern char message_text[32][81];
+extern char message_text[48][81];
 
 #endif //_TEXTMODE_H

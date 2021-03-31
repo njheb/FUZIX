@@ -21,7 +21,8 @@
 //#define calloc kmalloc
 
 // set this to 3, 4 or 5 for smallest to biggest font
-#define FRAGMENT_WORDS 4
+//#define FRAGMENT_WORDS 4 //for font8
+#define FRAGMENT_WORDS 3
 
 #if PICO_ON_DEVICE
 
@@ -45,7 +46,8 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core);
 //in FUZIX
 int video_main(void);
 /*scaled for middle sized font*/
-char message_text[32][81] = {
+//char message_text[32][81] = {
+char message_text[48][81] = {
 "0#############offscreen",
 "1#############lower half visible",
 "2The quick brown fox jumped over the Lazy dog.....01234567890123",
@@ -53,8 +55,11 @@ char message_text[32][81] = {
 "4Another Line",
 "#1234567890123456789012345678901234567890123456789012345678901234567890123456",
 "00000000001111111111222222222233333333334444444444555555555566666666667777777",
-//"#123456789012345678901234567890123456789012345678901234567890123",
-//"0000000000111111111122222222223333333333444444444455555555556666",
+"#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
+"00000000001111111111222222222233333333334444444444555555555566666666667777777777",
+"",
+"#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
+"00000000001111111111222222222233333333334444444444555555555566666666667777777777",
 "",
 };
 
@@ -203,17 +208,15 @@ extern bool scanvideo_in_vblank();
 	  	//snprintf(&message_text[9][0],10,"%09d", counter);
         tud_task();
         cdc_task();
-#define CRUDE_SPEEDUP
+#undef CRUDE_SPEEDUP
 #ifdef CRUDE_SPEEDUP
-//x2 slight disruption, line 6 totally knocked out when busy        
 	cdc_task();
 
-//4 calls causes some disruption
+
        cdc_task();
        cdc_task();
 
 
-//8 calls causes some disruption
         cdc_task();
         cdc_task();
         cdc_task();
@@ -319,10 +322,10 @@ const int speedup = //?;
 //const lv_font_t *font = &lcd;
 #elif FRAGMENT_WORDS == 4
 const lv_font_t *font = &ubuntu_mono8;
-const int speedup = 60; //line_height*FONT_WIDTH_WORDS 
+const int speedup = 15*4; //line_height*FONT_WIDTH_WORDS 
 #else
 const lv_font_t *font = &ubuntu_mono6;
-const int speedup = //?; 
+const int speedup = 10*3; 
 #endif
 #define FONT_HEIGHT (font->line_height)
 #define FONT_SIZE_WORDS (FONT_HEIGHT * FONT_WIDTH_WORDS)
@@ -567,6 +570,10 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
     int j = y/FONT_HEIGHT;
     int val;
     bool pad_the_rest = false;
+    if (j>31){ 
+        ch='#'-32;
+	goto skip;
+    }
     for (int i = 0; i < COUNT; i++) {
           if (pad_the_rest == true)
 	     ch = (int)' '-32;
@@ -581,6 +588,7 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
   	     else
 	  	ch = val-32;
           }
+skip:
 //njh end of simple framebuffer character lookup on scanline pass
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
         *output32++ = FRAGMENT_WORDS;
@@ -589,6 +597,7 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 //        *output32++ = host_safe_hw_ptr(dbase + ch * 60);
         *output32++ = host_safe_hw_ptr(dbase + ch * speedup);
     }
+
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
     *output32++ = FRAGMENT_WORDS;
 #endif
