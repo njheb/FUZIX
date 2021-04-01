@@ -61,7 +61,7 @@ NB board_init(); not needed
 check if crlf translate already setup or needed?
 */
 
-static const int xmax=76;
+static const int xmax=79;
 //14 ''''''''t (c) 2014-2020 Alan Cox...etc
 void cdc_task(void)
 {

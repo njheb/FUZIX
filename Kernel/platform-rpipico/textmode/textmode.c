@@ -186,7 +186,7 @@ extern bool scanvideo_in_vblank();
 //once <75 flicker bottom 2 thirds when no i/o
 //once <70 flicker bottem third when no i/o
 //once <65 stable when no i/o
-		if (once==false)
+		if (once==true) //turn this testcard off by testing for true
 		{
 		 for (ypos=8; ypos < 32; ypos++)
 		 {
@@ -208,7 +208,7 @@ extern bool scanvideo_in_vblank();
 	  	//snprintf(&message_text[9][0],10,"%09d", counter);
         tud_task();
         cdc_task();
-#undef CRUDE_SPEEDUP
+#define CRUDE_SPEEDUP
 #ifdef CRUDE_SPEEDUP
 	cdc_task();
 
@@ -322,9 +322,11 @@ const int speedup = //?;
 //const lv_font_t *font = &lcd;
 #elif FRAGMENT_WORDS == 4
 const lv_font_t *font = &ubuntu_mono8;
+const int speedup_FONT_HEIGHT = 15;
 const int speedup = 15*4; //line_height*FONT_WIDTH_WORDS 
 #else
 const lv_font_t *font = &ubuntu_mono6;
+const int speedup_FONT_HEIGHT = 10;
 const int speedup = 10*3; 
 #endif
 #define FONT_HEIGHT (font->line_height)
@@ -506,10 +508,11 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 //(320/FRAGMENT_WORDS)
     *output++ = 2 + COUNT * 2 * FRAGMENT_WORDS - 3;
     *output++ = 0;
-    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
+//    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
+    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % speedup_FONT_HEIGHT);
     for(int i=0;i<COUNT;i++) {
         int ch = 33 + i;
-        uint32_t *data = (uint16_t *)(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
+        uint32_t *data = (uint16_t *)(dbase + ch * speedup_FONT_HEIGHT * FONT_WIDTH_WORDS);
         for(int j=0;j<FRAGMENT_WORDS;j++) {
             *((uint32_t*)output) = *data++;
             output += 2;
@@ -559,35 +562,39 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
     *output32++ = FRAGMENT_WORDS;
 #endif
     *output32++ = host_safe_hw_ptr(beginning_of_line);
-    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
-    int cmax = font->dsc->cmaps[0].range_length;
+//    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
+    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % speedup_FONT_HEIGHT);
+//    int cmax = font->dsc->cmaps[0].range_length;
     int ch = 0;
 
 //    __breakpoint();
 
 //njh row zero and top half of row one off the top of the screen
 
-    int j = y/FONT_HEIGHT;
+//    int j = y/FONT_HEIGHT;
+    int j = y/speedup_FONT_HEIGHT;
     int val;
     bool pad_the_rest = false;
     if (j>31){ 
         ch='#'-32;
 	goto skip;
     }
+    else
     for (int i = 0; i < COUNT; i++) {
-          if (pad_the_rest == true)
-	     ch = (int)' '-32;
-	  else
-          {
+          //if (pad_the_rest == true)
+	  //   ch = (int)' '-32;
+	  //else
+          //{
              val = (int)message_text[j][i];
 	     if (val==0)
              {
   		ch = (int)' '-32;
-                pad_the_rest = true;
+		goto skip;
+                //pad_the_rest = true;
              }
   	     else
 	  	ch = val-32;
-          }
+          //}
 skip:
 //njh end of simple framebuffer character lookup on scanline pass
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
