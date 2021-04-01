@@ -49,7 +49,7 @@ int video_main(void);
 //char message_text[32][81] = {
 char message_text[48][81] = {
 "0#############offscreen",
-"1#############lower half visible",
+"1#############lower half visible in font8, all visible font6",
 "2The quick brown fox jumped over the Lazy dog.....01234567890123",
 "3#############",
 "4Another Line",
@@ -580,7 +580,11 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 
 //    if (j>31) j=7;
 
-    if (j>32) { 
+//    if (j>32) { 
+      if (y>475) { //448worked 2 scraps, 460worked 2scraps, 470 workes 1scrap, 474 works 1scrap, 
+//475 works no scraps !! "" ## etc indicators appear in buffer before logon message
+//476renders no scrap but usbcon stalls, !! ""  ## etc indicators appear in buffer after logon message stuff appears 
+//478 stalls
 //	ch='#'-32;
 
 //      uintptr_t hash_fragment=host_safe_hw_ptr(font_raw_pixels);
@@ -593,10 +597,10 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 //        *output32++ = hash_fragment;
 //	}
 	ch=' '-32;
-	goto skip;
+	goto skip; /*seem to need to abuse dma handling to keep everything moving*/
 
     }
-    else if (y%SLACK_RASTERS>10) {
+    else if (y%SLACK_RASTERS>10){
 
         uintptr_t blank_fragment=host_safe_hw_ptr(font_raw_pixels);
 
