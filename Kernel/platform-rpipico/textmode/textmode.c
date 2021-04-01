@@ -577,7 +577,9 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
     int j= y/SLACK_RASTERS;
     int val;
     bool pad_the_rest = false;
-    if (j>31) { 
+//    if (j>31) { 
+
+    if (j>27) { 
 //	ch='#'-32;
 
 //      uintptr_t hash_fragment=host_safe_hw_ptr(font_raw_pixels);
