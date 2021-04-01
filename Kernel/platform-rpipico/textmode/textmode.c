@@ -53,8 +53,8 @@ char message_text[48][81] = {
 "2The quick brown fox jumped over the Lazy dog.....01234567890123",
 "3#############",
 "4Another Line",
-"#1234567890123456789012345678901234567890123456789012345678901234567890123456",
-"00000000001111111111222222222233333333334444444444555555555566666666667777777",
+//"#1234567890123456789012345678901234567890123456789012345678901234567890123456",
+//"00000000001111111111222222222233333333334444444444555555555566666666667777777",
 "#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
 "00000000001111111111222222222233333333334444444444555555555566666666667777777777",
 "",
@@ -305,15 +305,10 @@ volatile uint32_t scanline_color = 0;
 int8_t pad[65536];  //njh not sure if this is necessary, working without so far
 #endif
 #if PICO_ON_DEVICE
-//debug kernel
 /*
 uint32_t *font_raw_pixels;
 #else
 */
-//njh grabbing 23K from USERMEM leads to exception, so not that simple 
-uint32_t font_raw_pixels[5700]; //just to get it compiling  //njh was being overflowed when 16384
-//uint32_t font_raw_pixels[22800];  //njh was being overflowed when 16384
-//njh would be nice to come up with a more compact format for font
 #endif
 #define FONT_WIDTH_WORDS FRAGMENT_WORDS
 #if FRAGMENT_WORDS == 5
@@ -324,10 +319,13 @@ const int speedup = //?;
 const lv_font_t *font = &ubuntu_mono8;
 const int speedup_FONT_HEIGHT = 15;
 const int speedup = 15*4; //line_height*FONT_WIDTH_WORDS 
+uint32_t font_raw_pixels[5700]; //22800bytes 24K from USERMEM
 #else
 const lv_font_t *font = &ubuntu_mono6;
 const int speedup_FONT_HEIGHT = 10;
 const int speedup = 10*3; 
+uint32_t font_raw_pixels[2850]; //95*3*10 =2850 = 11400bytes  12K could be returned
+//should reduce amount grabbed from USERMEM, left at 24K taken for now
 #endif
 #define FONT_HEIGHT (font->line_height)
 #define FONT_SIZE_WORDS (FONT_HEIGHT * FONT_WIDTH_WORDS)
@@ -564,7 +562,9 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
     *output32++ = host_safe_hw_ptr(beginning_of_line);
 //    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
 //    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % speedup_FONT_HEIGHT);
-    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % 12);
+//12 stable when FUZIX not busy
+#define SLACK_RASTERS 14
+    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % SLACK_RASTERS);
 //    int cmax = font->dsc->cmaps[0].range_length;
     int ch = 0;
 
@@ -574,24 +574,35 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 
 //    int j = y/FONT_HEIGHT;
 //    int j = y/speedup_FONT_HEIGHT;
-    int j= y/12;
+    int j= y/SLACK_RASTERS;
     int val;
     bool pad_the_rest = false;
     if (j>31) { 
-        val=0;
-        ch='#'-32;
+//	ch='#'-32;
+
+//      uintptr_t hash_fragment=host_safe_hw_ptr(font_raw_pixels);
+//
+//	for (int i = 0; i< 4; i++)
+//	{
+//#if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
+//        *output32++ = FRAGMENT_WORDS;
+//#endif
+//        *output32++ = hash_fragment;
+//	}
+	ch=' '-32;
 	goto skip;
+
     }
-    if (y%12>10) {
+    else if (y%SLACK_RASTERS>10) {
+
+        uintptr_t blank_fragment=host_safe_hw_ptr(font_raw_pixels);
 
 	for (int i = 0; i< COUNT; i++)
 	{
-         uintptr_t blank_fragment=host_safe_hw_ptr(font_raw_pixels);
+
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
         *output32++ = FRAGMENT_WORDS;
 #endif
-//        *output32++ = host_safe_hw_ptr(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
-//        *output32++ = host_safe_hw_ptr(dbase + ch * 60);
         *output32++ = blank_fragment;
 
 	}
@@ -620,7 +631,7 @@ skip:
 //        *output32++ = host_safe_hw_ptr(dbase + ch * 60);
         *output32++ = host_safe_hw_ptr(dbase + ch * speedup);
     }
-
+skip2:
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
     *output32++ = FRAGMENT_WORDS;
 #endif
