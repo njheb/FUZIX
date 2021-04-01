@@ -563,7 +563,8 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 #endif
     *output32++ = host_safe_hw_ptr(beginning_of_line);
 //    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
-    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % speedup_FONT_HEIGHT);
+//    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % speedup_FONT_HEIGHT);
+    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % 12);
 //    int cmax = font->dsc->cmaps[0].range_length;
     int ch = 0;
 
@@ -572,13 +573,28 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 //njh row zero and top half of row one off the top of the screen
 
 //    int j = y/FONT_HEIGHT;
-    int j = y/speedup_FONT_HEIGHT;
+//    int j = y/speedup_FONT_HEIGHT;
+    int j= y/12;
     int val;
     bool pad_the_rest = false;
-    if (j>31){ 
+    if (j>31) { 
         val=0;
         ch='#'-32;
 	goto skip;
+    }
+    if (y%12>10) {
+
+	for (int i = 0; i< COUNT; i++)
+	{
+         uintptr_t blank_fragment=host_safe_hw_ptr(font_raw_pixels);
+#if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
+        *output32++ = FRAGMENT_WORDS;
+#endif
+//        *output32++ = host_safe_hw_ptr(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
+//        *output32++ = host_safe_hw_ptr(dbase + ch * 60);
+        *output32++ = blank_fragment;
+
+	}
     }
     else
     for (int i = 0; i < COUNT; i++) {
