@@ -15,6 +15,7 @@ set(PICO_COPY_TO_RAM 1)
 # depends on choosing between 'pico' or 'vgaboard'
 # see Makefile
 add_definitions(-DSD_PIO_SPI_SET=$(SD_PIO_SPI_SET))
+add_definitions(-DPICO_SCANVIDEO_SCANLINE_BUFFER_COUNT=16)
 
 pico_sdk_init()
 include_directories(

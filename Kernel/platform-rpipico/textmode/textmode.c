@@ -186,14 +186,14 @@ extern bool scanvideo_in_vblank();
 //once <75 flicker bottom 2 thirds when no i/o
 //once <70 flicker bottem third when no i/o
 //once <65 stable when no i/o
-		if (once==true) //turn this testcard off by testing for true
+		if (once==false) //turn this testcard off by testing for true
 		{
 		 for (ypos=8; ypos < 32; ypos++)
 		 {
 		  message_text[ypos][2]=' ';
 
 //		  for (int i=xpos; i<65; i++) //<15 ok //30 ok in previous commit when on the fly
-		  for (int i=xpos; i<75; i++) //<15 ok //30 ok in previous commit when on the fly
+		  for (int i=xpos; i<5; i++) //<15 ok //30 ok in previous commit when on the fly
 			message_text[ypos][i]=c;
 		  //ypos++;
 		  c++;
@@ -576,25 +576,25 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
     int val;
     bool pad_the_rest = false;
     if (j>31){ 
+        val=0;
         ch='#'-32;
 	goto skip;
     }
     else
     for (int i = 0; i < COUNT; i++) {
-          //if (pad_the_rest == true)
-	  //   ch = (int)' '-32;
-	  //else
-          //{
+          if (pad_the_rest == true)
+	     ch = (int)' '-32;
+	  else
+          {
              val = (int)message_text[j][i];
 	     if (val==0)
              {
   		ch = (int)' '-32;
-		goto skip;
-                //pad_the_rest = true;
+                pad_the_rest = true;
              }
   	     else
 	  	ch = val-32;
-          //}
+          }
 skip:
 //njh end of simple framebuffer character lookup on scanline pass
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA

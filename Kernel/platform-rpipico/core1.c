@@ -107,8 +107,9 @@ extern char message_text[32][81];
 				uart_putc(uart_default, c);
 
 			if (!(c=='\r' || c=='\n' || c==8))
+			{
 			    message_text[ypos][xpos]=c;
-
+			}
 			if (c == '\r') 
 			{
 			    xpos=3;
@@ -117,6 +118,10 @@ extern char message_text[32][81];
 			{ 
 			    ypos++;
 			    if (ypos > 31) ypos=8;
+
+			    for (int i=3;i<xmax;i++)
+				message_text[ypos][i]='\0';
+
 			    message_text[4][13]='0'+ypos/10;
 			    message_text[4][14]='0'+ypos%10;
 			    message_text[4][15]=' ';
@@ -127,7 +132,7 @@ extern char message_text[32][81];
 			    xpos--;
 			    if (xpos==2) xpos=3;
 
-			    message_text[ypos][xpos]=' ';
+			    message_text[ypos][xpos]='\0';
 			} 
 			else
 				xpos++;
@@ -178,16 +183,6 @@ extern char message_text[32][81];
 			  message_text[4][18]=hexdig[(c>>4)&0xF];
 			  message_text[4][19]=hexdig[c&0x0F];
 			}
-#if 0
-			if (c==8)
-			{
-			    xpos--;
-			    if (xpos==2) xpos=3;
-
-			    message_text[ypos][xpos]=' ';
-			    c=-1; //not strictly needed
-			}
-#endif
 #endif
 
 		}
