@@ -577,6 +577,10 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 //    int j = y/FONT_HEIGHT;
 //    int j = y/speedup_FONT_HEIGHT;
 //    int j= y/SLACK_RASTERS;
+
+    uintptr_t host_safe_dbase=host_safe_hw_ptr(font_raw_pixels + FONT_WIDTH_WORDS * (y % SLACK_RASTERS));
+
+
     int k= y/SLACK_RASTERS;
     int j = ((k+9+ypos)%24)+8;
     int val;
@@ -641,7 +645,8 @@ skip:
 #endif
 //        *output32++ = host_safe_hw_ptr(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
 //        *output32++ = host_safe_hw_ptr(dbase + ch * 60);
-        *output32++ = host_safe_hw_ptr(dbase + ch * speedup);
+//        *output32++ = host_safe_hw_ptr(dbase + ch * speedup);
+        *output32++ = host_safe_dbase+ (ch * 120);
     }
 skip2:
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
