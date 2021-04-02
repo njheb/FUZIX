@@ -47,9 +47,11 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core);
 int video_main(void);
 /*scaled for middle sized font*/
 //char message_text[32][81] = {
+//usual monitor LG FLATRON L225WS
+//other RELISYS
 char message_text[48][81] = {
 "0#############offscreen",
-"1#############lower half visible in font8, all visible font6",
+"1#lower half visible fnt8 not fnt6, fnt6 row visible on REL, row not vis on LG",
 "2The quick brown fox jumped over the Lazy dog.....01234567890123",
 "3#############",
 "4Another Line",
@@ -112,7 +114,6 @@ void init_render_state(int core);
 // ok this is going to be the beginning of retained mode
 //
 
-
 void render_loop() {
 #ifdef INSTRUMENTATION
     static uint8_t last_input = 0;
@@ -145,6 +146,7 @@ void render_loop() {
 //don't know if 60Hz will service tud_task frequently enough for host end
 //not to complain
 extern bool scanvideo_in_vblank();
+
 	if (scanvideo_in_vblank() == true)
 	{
 		static bool once=false;
@@ -574,9 +576,12 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 
 //    int j = y/FONT_HEIGHT;
 //    int j = y/speedup_FONT_HEIGHT;
-    int j= y/SLACK_RASTERS;
+//    int j= y/SLACK_RASTERS;
+    int k= y/SLACK_RASTERS;
+    int j = ((k+9+ypos)%24)+8;
     int val;
     bool pad_the_rest = false;
+      if ((k<8)||(k>31)) j=k;
 
 //    if (j>31) j=7;
 

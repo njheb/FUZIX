@@ -11,5 +11,6 @@ extern bool usbconsole_is_writable(void);
 extern uint8_t usbconsole_getc_blocking(void);
 extern void usbconsole_putc_blocking(uint8_t b);
 
+extern int ypos;
 #endif
 
