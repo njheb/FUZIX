@@ -50,22 +50,9 @@ int video_main(void);
 //usual monitor LG FLATRON L225WS
 //other RELISYS
 char message_text[48][81] = {
-"0#############80x32 font8 when monitor 'auto adjust' available LG overlooked",
-"1#earlier",
-"2The quick brown fox jumped over the Lazy dog.....01234567890123",
-"3#############",
-"4Another Line",
-//"#1234567890123456789012345678901234567890123456789012345678901234567890123456",
-//"00000000001111111111222222222233333333334444444444555555555566666666667777777",
 "#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
 "00000000001111111111222222222233333333334444444444555555555566666666667777777777",
 "",
-//"#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
-//"00000000001111111111222222222233333333334444444444555555555566666666667777777777",
-//"",
-//"#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
-//"00000000001111111111222222222233333333334444444444555555555566666666667777777777",
-//"",
 };
 
 #define vga_mode vga_mode_640x480_60
@@ -144,73 +131,10 @@ void render_loop() {
         // todo up waiting on the next frame...
 
 #ifndef USE_SERIAL_ONLY
-//this leaves a stable display, next see if there is time to run tud_task
-//and handle cdc requirements
-//don't know if 60Hz will service tud_task frequently enough for host end
-//not to complain
 extern bool scanvideo_in_vblank();
 
 	if (scanvideo_in_vblank() == true)
 	{
-		static bool once=false;
-		static int xpos=3;
-		static int ypos=8;
-		static char c='!';
-		static int counter=0;
-		static int seconds;
-		counter++;
-		seconds=counter/60;
-		if ((counter%60)==0)
-		{
-		 // message_text[ypos][2]=' ';
-
-
-//IMPORTANT found an optimization that gets rid of display loss during FUZIX work
-//at least at the only screen resolution tested so far.
-//see "const int speedup" use in building raster
-
-//todo:having seen line length effect set up a grid of chars once rather than on the fly
-
-//usb startup clobbers display
-//effect of writing long lines causing raster blank offers some hope for compressed font being able to work
-//just noticed testing with counter%30
-//
-//
-//<15 ok except some disruption
-//<30 ok except some disruption to top six lines, perhaps because they are long
-//<60 stable when no input/output
-//<64 stable when no i/o
-//<65 stable when no i/o
-//<67 lower third flicker when no i/o
-//<70 lower third flicker when no i/o
-//<75 not stable when no i/o
-//<76 not stable when no input/output
-//this is turning into zx81 style fast/slow mode
-//once <76 not stable with no i/o
-//once <67 stable with no i/o
-//once <75 flicker bottom 2 thirds when no i/o
-//once <70 flicker bottem third when no i/o
-//once <65 stable when no i/o
-		if (once==false) //turn this testcard off by testing for true
-		{
-		 for (ypos=8; ypos < 32; ypos++)
-		 {
-		  message_text[ypos][2]=' ';
-
-//		  for (int i=xpos; i<65; i++) //<15 ok //30 ok in previous commit when on the fly
-		  for (int i=xpos; i<5; i++) //<15 ok //30 ok in previous commit when on the fly
-			message_text[ypos][i]=c;
-		  //ypos++;
-		  c++;
-		  //if (ypos==32) ypos=8;
-		  //if (c>'~') c ='!';
-         }
-		
-		once=true; 
-        }
-	  	snprintf(&message_text[7][0],10,"%3d", seconds);
-      }
-	  	//snprintf(&message_text[9][0],10,"%09d", counter);
         tud_task();
         cdc_task();
 #define CRUDE_SPEEDUP
@@ -581,32 +505,17 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 
 //    __breakpoint();
 
-//njh row zero and top half of row one off the top of the screen
-
-//    int j = y/FONT_HEIGHT;
-//    int j = y/speedup_FONT_HEIGHT;
-//    int j= y/SLACK_RASTERS;
-
     uintptr_t host_safe_dbase=host_safe_hw_ptr(font_raw_pixels + FONT_WIDTH_WORDS * (y % SLACK_RASTERS));
 
 
     int k= y/SLACK_RASTERS;
-//    int j = ((k+9+ypos)%24)+8;
 
     int j = ((k+26+ypos)%25);
     int val;
     bool pad_the_rest = false;
-//      if ((k<8)||(k>31)) j=k;
 
-//    if (j>31) j=7;
 
-//    if (j>32) { 
-/*      if (y>475) { 
-	ch=' '-32;
-	goto skip; //seem to need to abuse dma handling to keep everything moving
-
-    }
-    else*/ if (y%SLACK_RASTERS>speedup_FONT_HEIGHT){
+    if ((y%SLACK_RASTERS>speedup_FONT_HEIGHT)||(k==25)){
 
         uintptr_t blank_fragment=host_safe_hw_ptr(font_raw_pixels);
 

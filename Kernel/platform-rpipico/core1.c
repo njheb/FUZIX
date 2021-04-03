@@ -67,18 +67,10 @@ static const int xmax=79;
 void cdc_task(void)
 {
 #endif //USE_SERIAL_ONLY
-static bool first = false;
-static int test=0;
-static int xpos = 3;
-//int ypos = 8;
-extern char message_text[26][81]; //bottom line blank, need to handle this better
+//static bool first = false;
+static int xpos = 0;
+extern char message_text[25][81]; //partial line 26 is a shadow of line 0 on display
 
-		if (first==false)
-		{
-		  first = true;
-		  test = ypos;
-		  message_text[4][12]='0'+test;
-		}
 
 //		if (multicore_fifo_rvalid()
 //			&& (!tud_cdc_connected() || tud_cdc_write_available())
@@ -113,19 +105,15 @@ extern char message_text[26][81]; //bottom line blank, need to handle this bette
 			}
 			if (c == '\r') 
 			{
-			    xpos=3;
+			    xpos=0;
 			}
 			else if (c == '\n')
 			{ 
 			    ypos++;
 			    if (ypos > 25) ypos=0;
 
-			    for (int i=3;i<xmax;i++)
+			    for (int i=0;i<xmax;i++)
 				message_text[ypos][i]='\0';
-
-			    message_text[4][13]='0'+ypos/10;
-			    message_text[4][14]='0'+ypos%10;
-			    message_text[4][15]=' ';
 
 			}
 			else if (c==8)
@@ -140,11 +128,9 @@ extern char message_text[26][81]; //bottom line blank, need to handle this bette
 
 			if (xpos > xmax)
 			{
-			  xpos = 3;
+			  xpos = 0;
 			  ypos++;
 			  if (ypos>25) ypos = 0;
-			    message_text[4][16]='0'+ypos/10;
-			    message_text[4][17]='0'+ypos%10;
 			}
 
 		}
@@ -174,17 +160,6 @@ extern char message_text[26][81]; //bottom line blank, need to handle this bette
 				uint8_t b = uart_get_hw(uart_default)->dr; c=b;
 				multicore_fifo_push_blocking(b);
 			}
-#if 1
-			if (c!=-1)
-			{
-			  static char hexdig[]="0123456789abcdef";
-			  message_text[4][15]=' ';
-			  message_text[4][16]=' ';
-			  message_text[4][17]=' ';
-			  message_text[4][18]=hexdig[(c>>4)&0xF];
-			  message_text[4][19]=hexdig[c&0x0F];
-			}
-#endif
 
 		}
 #ifdef USE_SERIAL_ONLY
