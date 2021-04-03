@@ -55,9 +55,24 @@ char message_text[26][81] = {
 "",
 "",
 "",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"see bug note just under declaration of text_message",
 "#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
 "00000000001111111111222222222233333333334444444444555555555566666666667777777777",
-"",
+""
+//if extern text_message[25][81]; as it should be rather than [26][81] 
+//then FUZIX hangs, discovered when tidying up the code a little"
 };
 
 #define vga_mode vga_mode_640x480_60
@@ -515,7 +530,7 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 
     int k= y/SLACK_RASTERS;
 
-    int j = ((k+26+ypos)%25);
+    int j = (k+26+ypos)%25;
     int val;
     bool pad_the_rest = false;
 
@@ -642,14 +657,6 @@ void init_for_main(void)
     gpio_set_function(PICO_DEFAULT_UART_RX_PIN, GPIO_FUNC_UART);
     uart_set_translate_crlf(uart_default, false);
     uart_set_fifo_enabled(uart_default, true);
-/*
-    printf("TEST UART1\n");
-    for (int k=7; k<32; k++) {
-        message_text[k][0]=(k/10)+'0';
-        message_text[k][1]=(k%10)+'0';
-        message_text[k][2]='\0';
-    }
-*/
 }
 
 void demo_for_main(void)
