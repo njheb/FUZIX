@@ -21,8 +21,8 @@
 //#define calloc kmalloc
 
 // set this to 3, 4 or 5 for smallest to biggest font
-//#define FRAGMENT_WORDS 4 //for font8
-#define FRAGMENT_WORDS 3
+#define FRAGMENT_WORDS 4 //for font8
+//#define FRAGMENT_WORDS 3 //for font6
 
 #if PICO_ON_DEVICE
 
@@ -50,8 +50,8 @@ int video_main(void);
 //usual monitor LG FLATRON L225WS
 //other RELISYS
 char message_text[48][81] = {
-"0#############offscreen",
-"1#lower half visible fnt8 not fnt6, fnt6 row visible on REL, row not vis on LG",
+"0#############80x32 font8 when monitor 'auto adjust' available LG overlooked",
+"1#earlier",
 "2The quick brown fox jumped over the Lazy dog.....01234567890123",
 "3#############",
 "4Another Line",
@@ -60,9 +60,12 @@ char message_text[48][81] = {
 "#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
 "00000000001111111111222222222233333333334444444444555555555566666666667777777777",
 "",
-"#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
-"00000000001111111111222222222233333333334444444444555555555566666666667777777777",
-"",
+//"#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
+//"00000000001111111111222222222233333333334444444444555555555566666666667777777777",
+//"",
+//"#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
+//"00000000001111111111222222222233333333334444444444555555555566666666667777777777",
+//"",
 };
 
 #define vga_mode vga_mode_640x480_60
@@ -321,12 +324,17 @@ const int speedup = //?;
 const lv_font_t *font = &ubuntu_mono8;
 const int speedup_FONT_HEIGHT = 15;
 const int speedup = 15*4; //line_height*FONT_WIDTH_WORDS 
+const int font_cell_bytes = 15*4*4; 
 uint32_t font_raw_pixels[5700]; //22800bytes 24K from USERMEM
+#define SLACK_RASTERS 19 //for 25 lines, claw back same extra time as for font6
+//#define SLACK_RASTERS 15 //disable effect for now
 #else
 const lv_font_t *font = &ubuntu_mono6;
 const int speedup_FONT_HEIGHT = 10;
-const int speedup = 10*3; 
+const int speedup = 10*3;
+const int font_cell_bytes = 10*3*4; 
 uint32_t font_raw_pixels[2850]; //95*3*10 =2850 = 11400bytes  12K could be returned
+#define SLACK_RASTERS 14
 //should reduce amount grabbed from USERMEM, left at 24K taken for now
 #endif
 #define FONT_HEIGHT (font->line_height)
@@ -549,6 +557,8 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 #define COUNT MIN(vga_mode.width/(FRAGMENT_WORDS*2)-1, 80)//MAX_SCANLINE_BUFFER_WORDS / 2 - 2)
 //#undef COUNT
 //#define COUNT 79
+#undef COUNT
+#define COUNT 80
     // we need to take up 5 words, since we have fixed width
 #if PICO_SCANVIDEO_PLANE1_FIXED_FRAGMENT_DMA
     dest->fragment_words = FRAGMENT_WORDS;
@@ -565,7 +575,6 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 //    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % FONT_HEIGHT);
 //    uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % speedup_FONT_HEIGHT);
 //12 stable when FUZIX not busy
-#define SLACK_RASTERS 14
     uint32_t *dbase = font_raw_pixels + FONT_WIDTH_WORDS * (y % SLACK_RASTERS);
 //    int cmax = font->dsc->cmaps[0].range_length;
     int ch = 0;
@@ -582,34 +591,22 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
 
 
     int k= y/SLACK_RASTERS;
-    int j = ((k+9+ypos)%24)+8;
+//    int j = ((k+9+ypos)%24)+8;
+
+    int j = ((k+26+ypos)%25);
     int val;
     bool pad_the_rest = false;
-      if ((k<8)||(k>31)) j=k;
+//      if ((k<8)||(k>31)) j=k;
 
 //    if (j>31) j=7;
 
 //    if (j>32) { 
-      if (y>475) { //448worked 2 scraps, 460worked 2scraps, 470 workes 1scrap, 474 works 1scrap, 
-//475 works no scraps !! "" ## etc indicators appear in buffer before logon message
-//476renders no scrap but usbcon stalls, !! ""  ## etc indicators appear in buffer after logon message stuff appears 
-//478 stalls
-//	ch='#'-32;
-
-//      uintptr_t hash_fragment=host_safe_hw_ptr(font_raw_pixels);
-//
-//	for (int i = 0; i< 4; i++)
-//	{
-//#if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
-//        *output32++ = FRAGMENT_WORDS;
-//#endif
-//        *output32++ = hash_fragment;
-//	}
+/*      if (y>475) { 
 	ch=' '-32;
-	goto skip; /*seem to need to abuse dma handling to keep everything moving*/
+	goto skip; //seem to need to abuse dma handling to keep everything moving
 
     }
-    else if (y%SLACK_RASTERS>10){
+    else*/ if (y%SLACK_RASTERS>speedup_FONT_HEIGHT){
 
         uintptr_t blank_fragment=host_safe_hw_ptr(font_raw_pixels);
 
@@ -646,7 +643,8 @@ skip:
 //        *output32++ = host_safe_hw_ptr(dbase + ch * FONT_HEIGHT * FONT_WIDTH_WORDS);
 //        *output32++ = host_safe_hw_ptr(dbase + ch * 60);
 //        *output32++ = host_safe_hw_ptr(dbase + ch * speedup);
-        *output32++ = host_safe_dbase+ (ch * 120);
+//        *output32++ = host_safe_dbase+ (ch * 120);
+        *output32++ = host_safe_dbase+ (ch * font_cell_bytes);
     }
 skip2:
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA

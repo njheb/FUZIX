@@ -61,7 +61,7 @@ NB board_init(); not needed
 check if crlf translate already setup or needed?
 */
 
-int ypos = 8; //available to textmode.c for scrolling
+int ypos = 0; //available to textmode.c for scrolling
 static const int xmax=79;
 //14 ''''''''t (c) 2014-2020 Alan Cox...etc
 void cdc_task(void)
@@ -71,7 +71,7 @@ static bool first = false;
 static int test=0;
 static int xpos = 3;
 //int ypos = 8;
-extern char message_text[32][81];
+extern char message_text[26][81]; //bottom line blank, need to handle this better
 
 		if (first==false)
 		{
@@ -118,7 +118,7 @@ extern char message_text[32][81];
 			else if (c == '\n')
 			{ 
 			    ypos++;
-			    if (ypos > 31) ypos=8;
+			    if (ypos > 25) ypos=0;
 
 			    for (int i=3;i<xmax;i++)
 				message_text[ypos][i]='\0';
@@ -142,7 +142,7 @@ extern char message_text[32][81];
 			{
 			  xpos = 3;
 			  ypos++;
-			  if (ypos>31) ypos = 8;
+			  if (ypos>25) ypos = 0;
 			    message_text[4][16]='0'+ypos/10;
 			    message_text[4][17]='0'+ypos%10;
 			}
