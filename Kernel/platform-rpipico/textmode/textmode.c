@@ -42,14 +42,19 @@ typedef bool (*render_scanline_func)(struct scanvideo_scanline_buffer *dest, int
 bool render_scanline_test_pattern(struct scanvideo_scanline_buffer *dest, int core);
 bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core);
 
-//njh move this to a header and make sure to kick off after UART1 setup 
-//in FUZIX
 int video_main(void);
 /*scaled for middle sized font*/
-//char message_text[32][81] = {
-//usual monitor LG FLATRON L225WS
-//other RELISYS
-char message_text[48][81] = {
+char message_text[26][81] = {
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
 "#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
 "00000000001111111111222222222233333333334444444444555555555566666666667777777777",
 "",
@@ -544,8 +549,7 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core) {
   	     else
 	  	ch = val-32;
           }
-skip:
-//njh end of simple framebuffer character lookup on scanline pass
+//end of simple framebuffer character lookup on scanline pass
 #if PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA
         *output32++ = FRAGMENT_WORDS;
 #endif
@@ -638,13 +642,14 @@ void init_for_main(void)
     gpio_set_function(PICO_DEFAULT_UART_RX_PIN, GPIO_FUNC_UART);
     uart_set_translate_crlf(uart_default, false);
     uart_set_fifo_enabled(uart_default, true);
-
+/*
     printf("TEST UART1\n");
     for (int k=7; k<32; k++) {
         message_text[k][0]=(k/10)+'0';
         message_text[k][1]=(k%10)+'0';
         message_text[k][2]='\0';
     }
+*/
 }
 
 void demo_for_main(void)

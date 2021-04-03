@@ -67,9 +67,7 @@ static const int xmax=79;
 void cdc_task(void)
 {
 #endif //USE_SERIAL_ONLY
-//static bool first = false;
 static int xpos = 0;
-extern char message_text[25][81]; //partial line 26 is a shadow of line 0 on display
 
 
 //		if (multicore_fifo_rvalid()
