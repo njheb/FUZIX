@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include <tusb.h>
+//#include <tusb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico.h"
@@ -155,8 +155,8 @@ extern bool scanvideo_in_vblank();
 
 	if (scanvideo_in_vblank() == true)
 	{
-        tud_task();
-        cdc_task();
+//        tud_task();
+        cdc_task(); //this is now is named as we are running without usb
 #define CRUDE_SPEEDUP
 #ifdef CRUDE_SPEEDUP
 	cdc_task();
@@ -235,7 +235,7 @@ void setup_video() {
 
 void core1_func() {
 #ifndef USE_SERIAL_ONLY
-    tusb_init();
+//    tusb_init();
 #endif    
 #ifdef IRQS_ON_CORE1
     setup_video();

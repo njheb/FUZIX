@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <tusb.h>
+//#include <tusb.h>
 #include <pico/stdlib.h>
 #include <pico/time.h>
 #include <pico/binary_info.h>
@@ -70,28 +70,24 @@ void cdc_task(void)
 static int xpos = 0;
 
 
-//		if (multicore_fifo_rvalid()
-//			&& (!tud_cdc_connected() || tud_cdc_write_available())
-//			&& uart_is_writable(uart_default))
 
-//		if ( (multicore_fifo_rvalid() && (tud_cdc_connected() && tud_cdc_write_available()) )
+//		if ( (multicore_fifo_rvalid())
 //		     ||
 //		     (multicore_fifo_rvalid() && uart_is_writable(uart_default)) )
-
-		if ( (multicore_fifo_rvalid())
-		     ||
+		if ( 
 		     (multicore_fifo_rvalid() && uart_is_writable(uart_default)) )
 		{
 			int b = multicore_fifo_pop_blocking();
 			uint8_t c;
 			c=(uint8_t)b;
-
+/*
 			if (tud_cdc_connected() && tud_cdc_write_available())
 			{
 //				tud_cdc_write(&b, 1);
 				tud_cdc_write_char(c);
 				tud_cdc_write_flush();
 			}
+*/
 
 //			uart_putc(uart_default, b);
 			if (uart_is_writable(uart_default))
@@ -134,14 +130,16 @@ static int xpos = 0;
 		}
 			
 
-		if (multicore_fifo_wready()
-			&& ((tud_cdc_connected() && tud_cdc_available())
-				|| uart_is_readable(uart_default)))
+//		if (multicore_fifo_wready()
+//			&& ((tud_cdc_connected() && tud_cdc_available())
+//				|| uart_is_readable(uart_default)))
+		if (multicore_fifo_wready() && uart_is_readable(uart_default))
 		{
 			/* Only service a byte from CDC *or* the UART, in case two show
 			 * up at the same time and we end up blocking. No big loss, the
 			 * next one will be read the next time around the loop. */
 			static int c;
+/*
 			if (tud_cdc_available())
 			{
 				uint8_t b; c=-1;
@@ -152,6 +150,8 @@ static int xpos = 0;
 					c=b;
 				}
 			}
+*/
+
 //			else if (uart_is_readable(uart_default))
 			if (uart_is_readable(uart_default) && multicore_fifo_wready())
 			{
