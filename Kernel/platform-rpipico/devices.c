@@ -15,6 +15,8 @@
 #include <pico/multicore.h>
 #include "core1.h"
 #endif
+extern void tusb_init(void);
+extern void tud_task(void);
 
 #include "textmode/textmode.h"
 
@@ -58,17 +60,21 @@ static void timer_tick_cb_body(unsigned alarm)
         update_us_since_boot(&next, time_us_64() + (1000000 / TICKSPERSEC));
         hardware_alarm_set_target(0, next);
     }
-
+    tud_task();
+    cdc_task();
     timer_interrupt();
 }
 
+extern int rx_character;
 static void timer_tick_cb(unsigned alarm)
 {
     timer_tick_cb_body(alarm);
 #ifndef USE_SERIAL_ONLY
-    if (usbconsole_is_readable())
+    if (rx_character!=-1)
     {
-        uint8_t c = usbconsole_getc_blocking();
+//        uint8_t c = usbconsole_getc_blocking();
+        uint8_t c = rx_character;
+	rx_character=-1;
         tty_inproc(minor(BOOT_TTY), c);
     }
 #endif
@@ -78,7 +84,7 @@ void device_init(void)
 {
     /* The flash device is too small to be useful, and a corrupt flash will
      * cause a crash on startup... oddly. */
-
+	tusb_init();
 	flash_dev_init();
 	sd_rawinit();
 

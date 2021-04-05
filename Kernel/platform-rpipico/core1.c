@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-//#include <tusb.h>
+#include <tusb.h>
 #include <pico/stdlib.h>
 #include <pico/time.h>
 #include <pico/binary_info.h>
@@ -61,37 +61,25 @@ NB board_init(); not needed
 check if crlf translate already setup or needed?
 */
 
+int tx_character=-1;
+int rx_character=-1;
+
 int ypos = 0; //available to textmode.c for scrolling
 static const int xmax=79;
 //14 ''''''''t (c) 2014-2020 Alan Cox...etc
-void cdc_task(void)
+void cdc_drain(void)
 {
-#endif //USE_SERIAL_ONLY
 static int xpos = 0;
 
 
 
-//		if ( (multicore_fifo_rvalid())
-//		     ||
-//		     (multicore_fifo_rvalid() && uart_is_writable(uart_default)) )
-		if ( 
-		     (multicore_fifo_rvalid() && uart_is_writable(uart_default)) )
+//		if  (multicore_fifo_rvalid() && uart_is_writable(uart_default)) 
+		if  (multicore_fifo_rvalid() ) 
 		{
 			int b = multicore_fifo_pop_blocking();
 			uint8_t c;
 			c=(uint8_t)b;
-/*
-			if (tud_cdc_connected() && tud_cdc_write_available())
-			{
-//				tud_cdc_write(&b, 1);
-				tud_cdc_write_char(c);
-				tud_cdc_write_flush();
-			}
-*/
 
-//			uart_putc(uart_default, b);
-			if (uart_is_writable(uart_default))
-				uart_putc(uart_default, c);
 
 			if (!(c=='\r' || c=='\n' || c==8))
 			{
@@ -128,38 +116,63 @@ static int xpos = 0;
 			}
 
 		}
+
+}
+
+void cdc_task(void)
+{
+#endif //USE_SERIAL_ONLY
 			
 
 //		if (multicore_fifo_wready()
 //			&& ((tud_cdc_connected() && tud_cdc_available())
 //				|| uart_is_readable(uart_default)))
-		if (multicore_fifo_wready() && uart_is_readable(uart_default))
+//		if (multicore_fifo_wready() && uart_is_readable(uart_default))
+		rx_character=-1;
+		if (
+			multicore_fifo_wready() && 
+			(uart_is_readable(uart_default) || 
+			 (tud_cdc_connected() && tud_cdc_available())
+			)  
+		   )
 		{
 			/* Only service a byte from CDC *or* the UART, in case two show
 			 * up at the same time and we end up blocking. No big loss, the
 			 * next one will be read the next time around the loop. */
-			static int c;
-/*
+
 			if (tud_cdc_available())
 			{
-				uint8_t b; c=-1;
+				uint8_t b;
 				int count = tud_cdc_read(&b, 1);
 				if (count==1)
 				{
 					multicore_fifo_push_blocking(b);
-					c=b;
+					rx_character=b;
 				}
 			}
-*/
 
-//			else if (uart_is_readable(uart_default))
+
 			if (uart_is_readable(uart_default) && multicore_fifo_wready())
+//			if (uart_is_readable(uart_default))
 			{
-				uint8_t b = uart_get_hw(uart_default)->dr; c=b;
+				uint8_t b = uart_get_hw(uart_default)->dr; rx_character=b;
 				multicore_fifo_push_blocking(b);
 			}
 
 		}
+
+			if (tud_cdc_connected() && tud_cdc_write_available() && tx_character!=-1)
+			{
+//				tud_cdc_write(&b, 1);
+				tud_cdc_write_char(tx_character);
+				tud_cdc_write_flush();
+			}
+
+
+//			uart_putc(uart_default, b);
+			if (uart_is_writable(uart_default) && tx_character!=-1)
+				uart_putc(uart_default, tx_character);
+
 #ifdef USE_SERIAL_ONLY
 	}
 }

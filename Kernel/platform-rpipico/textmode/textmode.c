@@ -156,20 +156,16 @@ extern bool scanvideo_in_vblank();
 	if (scanvideo_in_vblank() == true)
 	{
 //        tud_task();
-        cdc_task(); //this is now is named as we are running without usb
+        cdc_drain(); //this is now is named as we are running without usb
 #define CRUDE_SPEEDUP
 #ifdef CRUDE_SPEEDUP
-	cdc_task();
-
-
-       cdc_task();
-       cdc_task();
-
-
-        cdc_task();
-        cdc_task();
-        cdc_task();
-        cdc_task();
+	cdc_drain();
+	cdc_drain();
+	cdc_drain();
+	cdc_drain();
+	cdc_drain();
+	cdc_drain();
+	cdc_drain();
 
 #endif
 	}

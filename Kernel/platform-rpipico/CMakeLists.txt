@@ -48,7 +48,7 @@ target_sources(fuzix PRIVATE
 	tricks.S
 #ifndef USE_SERIAL_ONLY 
 	core1.c
-##	usbdescriptors.c
+	usbdescriptors.c
 #endif
 	../dev/blkdev.c
 	../dev/mbr.c
@@ -99,8 +99,8 @@ target_link_libraries(fuzix
 	hardware_uart
 #       hardware_timer
     hardware_pio
-##	tinyusb_device_unmarked
-##	tinyusb_board
+	tinyusb_device_unmarked
+	tinyusb_board
 	pico_scanvideo_dpi
 )
 
