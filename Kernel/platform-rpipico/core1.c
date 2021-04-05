@@ -146,7 +146,7 @@ void cdc_task(void)
 				int count = tud_cdc_read(&b, 1);
 				if (count==1)
 				{
-					multicore_fifo_push_blocking(b);
+				//	multicore_fifo_push_blocking(b);
 					rx_character=b;
 				}
 			}
@@ -156,7 +156,7 @@ void cdc_task(void)
 //			if (uart_is_readable(uart_default))
 			{
 				uint8_t b = uart_get_hw(uart_default)->dr; rx_character=b;
-				multicore_fifo_push_blocking(b);
+				//multicore_fifo_push_blocking(b);
 			}
 
 		}

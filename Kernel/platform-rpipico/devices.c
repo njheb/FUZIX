@@ -95,10 +95,10 @@ void device_init(void)
 
     hardware_alarm_set_callback(0, timer_tick_cb); 
 
-    	while (usbconsole_is_readable())
-    	{
-        	uint8_t c = usbconsole_getc_blocking();
-	}
+//    	while (usbconsole_is_readable())
+//    	{
+ //       	uint8_t c = usbconsole_getc_blocking();
+//	}
 
     timer_tick_cb(0); //spurious char here
        // timer_tick_cb_body(0); //improvising
