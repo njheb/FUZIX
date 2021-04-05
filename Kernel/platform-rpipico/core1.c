@@ -173,6 +173,7 @@ void cdc_task(void)
 			if (uart_is_writable(uart_default) && tx_character!=-1)
 				uart_putc(uart_default, tx_character);
 
+			tx_character=-1;
 #ifdef USE_SERIAL_ONLY
 	}
 }
