@@ -157,7 +157,7 @@ extern bool scanvideo_in_vblank();
 	{
 //        tud_task();
         cdc_drain(); //this is now is named as we are running without usb
-#undef CRUDE_SPEEDUP
+#define CRUDE_SPEEDUP
 #ifdef CRUDE_SPEEDUP
 	cdc_drain();
 	cdc_drain();

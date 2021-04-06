@@ -12,6 +12,7 @@
 #include <hardware/uart.h>
 #include <hardware/irq.h>
 #include "core1.h"
+#include "pico/util/queue.h"
 
 bool usbconsole_is_readable(void)
 {
@@ -61,8 +62,9 @@ NB board_init(); not needed
 check if crlf translate already setup or needed?
 */
 
-int tx_character=-1;
-int rx_character=-1;
+
+extern queue_t rx_queue;
+extern queue_t tx_queue;
 
 int ypos = 0; //available to textmode.c for scrolling
 static const int xmax=79;
@@ -128,9 +130,9 @@ void cdc_task(void)
 //			&& ((tud_cdc_connected() && tud_cdc_available())
 //				|| uart_is_readable(uart_default)))
 //		if (multicore_fifo_wready() && uart_is_readable(uart_default))
-		rx_character=-1;
+		//rx_character=-1;
 		if (
-			multicore_fifo_wready() && 
+			!queue_is_full(&rx_queue) && 
 			(uart_is_readable(uart_default) || 
 			 (tud_cdc_connected() && tud_cdc_available())
 			)  
@@ -147,33 +149,42 @@ void cdc_task(void)
 				if (count==1)
 				{
 				//	multicore_fifo_push_blocking(b);
-					rx_character=b;
+			//		rx_character=b;
+					queue_add_blocking(&rx_queue,&b);
 				}
 			}
 
 
-			if (uart_is_readable(uart_default) && multicore_fifo_wready())
-//			if (uart_is_readable(uart_default))
+//			if (uart_is_readable(uart_default) && multicore_fifo_wready())
+			if (uart_is_readable(uart_default) && !queue_is_full(&rx_queue))
 			{
-				uint8_t b = uart_get_hw(uart_default)->dr; rx_character=b;
+				uint8_t b = uart_get_hw(uart_default)->dr;
 				//multicore_fifo_push_blocking(b);
+				queue_add_blocking(&rx_queue,&b);
+
 			}
 
 		}
 
-			if (tud_cdc_connected() && tud_cdc_write_available() && tx_character!=-1)
+			int tx_character=-1;
+
+			if (tud_cdc_connected() && tud_cdc_write_available() && !queue_is_empty(&tx_queue))
 			{
 //				tud_cdc_write(&b, 1);
+				uint8_t b;
+				queue_remove_blocking(&tx_queue, &b);
+				tx_character=b;
 				tud_cdc_write_char(tx_character);
 				tud_cdc_write_flush();
 			}
 
 
 //			uart_putc(uart_default, b);
+			//right now this could be lossy on uart, assume we are doing i/o on usb com port
+			//just for test, could have a tx_uart_queue and a usb_tx_queue
 			if (uart_is_writable(uart_default) && tx_character!=-1)
 				uart_putc(uart_default, tx_character);
 
-			tx_character=-1;
 #ifdef USE_SERIAL_ONLY
 	}
 }

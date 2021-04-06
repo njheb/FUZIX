@@ -7,6 +7,7 @@
 #include "printf.h"
 #include "core1.h"
 #include "textmode/textmode.h"
+#include "queue_shim.h"
 
 uint_fast8_t platform_param(char* p)
 {
@@ -48,6 +49,7 @@ int main(void)
 #ifdef USE_SERIAL_ONLY
    tty_rawinit(); 
 #else
+    shim_init_queues();
     init_for_main(); //set up uart1, graft in code from core1 uart init
     (void)video_main();
     sleep_ms(1000);//could be shorter than 1000ms, 750ms too short

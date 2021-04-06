@@ -12,6 +12,7 @@
 #include <pico/multicore.h>
 #include "core1.h"
 #endif
+#include "queue_shim.h"
 
 static uint8_t ttybuf[TTYSIZ];
 
@@ -23,7 +24,9 @@ struct s_queue ttyinq[NUM_DEV_TTY+1] = { /* ttyinq[0] is never used */
 tcflag_t termios_mask[NUM_DEV_TTY+1] = { 0, _CSYS };
 
 /* Output for the system console (kprintf etc) */
-extern int tx_character;
+//extern int tx_character; track this down and remove
+//extern queue_t tx_queue;
+
 void kputchar(uint_fast8_t c)
 {
 #ifdef USE_SERIAL_ONLY
@@ -32,7 +35,9 @@ void kputchar(uint_fast8_t c)
     if (c == '\n')
         usbconsole_putc_blocking('\r');
     usbconsole_putc_blocking(c);
-    tx_character=c;
+//    tx_character=c;
+//    queue_add_blocking(&tx_queue, &c);
+    shim_push_tx_queue_blocking(c);
 #endif
 }
 

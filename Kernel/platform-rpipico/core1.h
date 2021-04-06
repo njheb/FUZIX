@@ -5,6 +5,7 @@
 extern void core1_init(void);
 #else
 extern void cdc_task(void);
+extern void cdc_drain(void);
 #endif
 extern bool usbconsole_is_readable(void);
 extern bool usbconsole_is_writable(void);

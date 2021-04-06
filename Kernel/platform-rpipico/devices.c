@@ -1,3 +1,5 @@
+#include "queue_shim.h"
+
 #include <kernel.h>
 #include <version.h>
 #include <kdata.h>
@@ -65,25 +67,29 @@ static void timer_tick_cb_body(unsigned alarm)
     timer_interrupt();
 }
 
-extern int rx_character;
+//queue_t rx_queue;
+//queue_t tx_queue;
+//these are now in queue_shim.c
+
 static void timer_tick_cb(unsigned alarm)
 {
+    static int rx_character;
     timer_tick_cb_body(alarm);
-#ifndef USE_SERIAL_ONLY
+    rx_character = shim_pop_rx_queue();
     if (rx_character!=-1)
     {
-//        uint8_t c = usbconsole_getc_blocking();
-        uint8_t c = rx_character;
-	rx_character=-1;
+	uint8_t c=rx_character;
         tty_inproc(minor(BOOT_TTY), c);
     }
-#endif
 }
 
 void device_init(void)
 {
     /* The flash device is too small to be useful, and a corrupt flash will
      * cause a crash on startup... oddly. */
+//	queue_init(&rx_queue, sizeof(uint8_t), 32);
+//	queue_init(&tx_queue, sizeof(uint8_t), 32);
+//	shim_init_queues(); //moved to main
 	tusb_init();
 	flash_dev_init();
 	sd_rawinit();

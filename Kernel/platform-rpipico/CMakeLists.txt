@@ -83,6 +83,7 @@ target_sources(fuzix PRIVATE
 #    ./textmode/textmode.h
 	./textmode/font8.c
 #	./textmode/font6.c
+	./queue_shim.c
 )
 
     target_compile_definitions(fuzix PRIVATE
