@@ -37,6 +37,9 @@ void kputchar(uint_fast8_t c)
     usbconsole_putc_blocking(c);
 //    tx_character=c;
 //    queue_add_blocking(&tx_queue, &c);
+    if (c == '\n')
+    	shim_push_tx_queue_blocking('\r');
+
     shim_push_tx_queue_blocking(c);
 #endif
 }

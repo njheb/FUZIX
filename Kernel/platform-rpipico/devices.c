@@ -9,6 +9,7 @@
 #include <devtty.h>
 #include <dev/devsd.h>
 #include <printf.h>
+//#include "printf.h"
 #include "globals.h"
 #include "picosdk.h"
 #include <hardware/irq.h>
@@ -108,6 +109,9 @@ void device_init(void)
 
     timer_tick_cb(0); //spurious char here
        // timer_tick_cb_body(0); //improvising
+
+    int holdoff_left=shim_extra(10000); //wait for usb to connect
+    kprintf("\n<<%d>>\n",holdoff_left);
 
 //njh
 //njh have to move this forward  (void)video_main();

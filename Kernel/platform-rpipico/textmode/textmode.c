@@ -652,6 +652,7 @@ void init_for_main(void)
     gpio_set_function(PICO_DEFAULT_UART_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(PICO_DEFAULT_UART_RX_PIN, GPIO_FUNC_UART);
     uart_set_translate_crlf(uart_default, false);
+//    uart_set_translate_crlf(uart_default, true);
     uart_set_fifo_enabled(uart_default, true);
 }
 

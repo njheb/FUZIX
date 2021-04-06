@@ -54,7 +54,7 @@ int main(void)
     (void)video_main();
     sleep_ms(1000);//could be shorter than 1000ms, 750ms too short
     kprintf("Try USB\n"); //should be able to detect if host is there or not
-    sleep_ms(1500);      //right now just dumb wait so that 2nd and subsequent
+//    sleep_ms(1500);      //right now just dumb wait so that 2nd and subsequent
 			//minicom sessions will capture output
 /*
     char buffer[]="Hello!";
