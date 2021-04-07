@@ -40,7 +40,7 @@ struct devsw dev_tab[] =  /* The device driver switch table */
   /* Pack to 7 with nxio if adding private devices and start at 8 */
 };
 
-static absolute_time_t now;
+//static absolute_time_t now;
 
 bool validdev(uint16_t dev)
 {
@@ -51,7 +51,7 @@ bool validdev(uint16_t dev)
     else
         return true;
 }
-
+/*
 static absolute_time_t next;
 
 static void timer_tick_cb_body(unsigned alarm)
@@ -83,6 +83,27 @@ static void timer_tick_cb(unsigned alarm)
         tty_inproc(minor(BOOT_TTY), c);
     }
 }
+*/
+struct repeating_timer timer;
+
+bool timer_tick_cb(struct repeating_timer *t)
+{
+    int rx_character;
+
+    tud_task();
+    cdc_task();
+
+    rx_character = shim_pop_rx_queue();
+    if (rx_character!=-1)
+    {
+	uint8_t c=rx_character;
+        tty_inproc(minor(BOOT_TTY), c);
+    }
+
+    timer_interrupt();
+
+    return true;
+}
 
 void device_init(void)
 {
@@ -96,33 +117,60 @@ void device_init(void)
 	sd_rawinit();
 
 	devsd_init();
-
+/*
     hardware_alarm_claim(0);
     update_us_since_boot(&now, time_us_64());
 
     hardware_alarm_set_callback(0, timer_tick_cb); 
-
+*/
+//    add_repeating_timer_ms(-(1000/TICKSPERSEC), timer_tick_cb, NULL, &timer);
+    add_repeating_timer_ms((1000/TICKSPERSEC), timer_tick_cb, NULL, &timer);
 //    	while (usbconsole_is_readable())
 //    	{
 //       	uint8_t c = usbconsole_getc_blocking();
 //	}
+#if 1
+    irqflags_t f = di();
+    usbconsole_putc_blocking('[');
+
     while (uart_is_readable(uart_default))
     {
        uint8_t b= uart_get_hw(uart_default)->dr;
     }
+    irqrestore(f);
+#endif
+
+    sleep_ms(1000);
+    /*irqflags_t*/ f = di();
+#if 0
+
+    while (uart_is_readable(uart_default))
+    {
+       uint8_t b= uart_get_hw(uart_default)->dr;
+    }
+#endif
+    usbconsole_putc_blocking(']');
+    irqrestore(f);
+
+/*
     kprintf("(");
     usbconsole_putc_blocking('{');
-    timer_tick_cb(0); //spurious char here, without draining uart
+//    timer_tick_cb(0); //spurious char here, without draining uart
        // timer_tick_cb_body(0); //improvising
     usbconsole_putc_blocking('}');
     kprintf(")");
+*/
     int holdoff_left=shim_extra(10000); //wait for usb to connect in ms
 //but spurious char shows in the next line and 1st date input is invalid
     kprintf("\n<<%d>>\n",holdoff_left);
+#if 0
+    /*irqflags_t*/ f = di();
     while (uart_is_readable(uart_default))
     {
        uint8_t b= uart_get_hw(uart_default)->dr;
     }
+    irqrestore(f);
+#endif
     holdoff_left=shim_extra(1); //another go at draining the usb rx buffer
 
 //njh
