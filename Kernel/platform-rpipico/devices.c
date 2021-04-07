@@ -104,14 +104,26 @@ void device_init(void)
 
 //    	while (usbconsole_is_readable())
 //    	{
- //       	uint8_t c = usbconsole_getc_blocking();
+//       	uint8_t c = usbconsole_getc_blocking();
 //	}
-
-    timer_tick_cb(0); //spurious char here
+    while (uart_is_readable(uart_default))
+    {
+       uint8_t b= uart_get_hw(uart_default)->dr;
+    }
+    kprintf("(");
+    usbconsole_putc_blocking('{');
+    timer_tick_cb(0); //spurious char here, without draining uart
        // timer_tick_cb_body(0); //improvising
-
-    int holdoff_left=shim_extra(10000); //wait for usb to connect
+    usbconsole_putc_blocking('}');
+    kprintf(")");
+    int holdoff_left=shim_extra(10000); //wait for usb to connect in ms
+//but spurious char shows in the next line and 1st date input is invalid
     kprintf("\n<<%d>>\n",holdoff_left);
+    while (uart_is_readable(uart_default))
+    {
+       uint8_t b= uart_get_hw(uart_default)->dr;
+    }
+    holdoff_left=shim_extra(1); //another go at draining the usb rx buffer
 
 //njh
 //njh have to move this forward  (void)video_main();
