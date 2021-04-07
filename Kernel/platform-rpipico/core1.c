@@ -141,8 +141,8 @@ void cdc_task(void)
 			/* Only service a byte from CDC *or* the UART, in case two show
 			 * up at the same time and we end up blocking. No big loss, the
 			 * next one will be read the next time around the loop. */
-
-			if (tud_cdc_available())
+//			if (tud_cdc_available())
+			if (tud_cdc_connected() && tud_cdc_available())
 			{
 				uint8_t b;
 				int count = tud_cdc_read(&b, 1);

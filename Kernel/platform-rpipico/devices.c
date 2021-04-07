@@ -140,7 +140,8 @@ void device_init(void)
     irqrestore(f);
 #endif
 
-    sleep_ms(1000);
+//    sleep_ms(1000);
+    sleep_ms(5000);
     /*irqflags_t*/ f = di();
 #if 0
 
