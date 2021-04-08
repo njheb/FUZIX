@@ -176,40 +176,54 @@ void cdc_task(void)
 
 		}
 
-			int tx_character=-1;
+//right now serial tx will be very lossy, just trying out usb write rather than character at a time
 			int tx_count=0;
-			uint8_t buffer[16];
-			while (tud_cdc_connected() && tud_cdc_write_available() && !queue_is_empty(&tx_queue) && tx_count<sizeof(buffer))
+			uint8_t buffer[32];
+
+			while (uart_is_writable(uart_default) && tx_count<sizeof(buffer) && !queue_is_empty(&tx_queue))
 			{
-//				tud_cdc_write(&b, 1);
 				uint8_t b;
 				queue_remove_blocking(&tx_queue, &b);
-				tx_character=b;
+
+				buffer[tx_count++]=b;
+				uart_putc(uart_default, b);
+			}
+
+
+//			int tx_character=-1;
+//			int tx_count=0;
+//			uint8_t buffer[16];
+//			while (tud_cdc_connected() && tud_cdc_write_available() && !queue_is_empty(&tx_queue) && tx_count<sizeof(buffer))
+			if (tud_cdc_connected() && tud_cdc_write_available() && tx_count)
+			{
+//				tud_cdc_write(&b, 1);
+//				uint8_t b;
+//				queue_remove_blocking(&tx_queue, &b);
+//				tx_character=b;
 				if (counter<5)
 				{/*see debugging usb startup in main.c*/
-				    counter++;
-				    usbconsole_putc_blocking('{');
-				    usbconsole_putc_blocking(b);
-				    usbconsole_putc_blocking('}');
+				    counter+=tx_count;
+				    //usbconsole_putc_blocking('{');
+				    //usbconsole_putc_blocking(b);
+				    //usbconsole_putc_blocking('}');
 
 				}
-				buffer[tx_count++]=b;
+				//buffer[tx_count++]=b;
 				//tud_cdc_write_char(tx_character);
+				tud_cdc_write(buffer, tx_count);
+				tud_cdc_write_flush();
 				//tud_cdc_write_flush();
 
 			}
-			if (tx_count!=0)
-			{
-				tud_cdc_write(buffer, tx_count);
-				tud_cdc_write_flush();
-			}
+//			if (tx_count!=0)
+//			{
+//				tud_cdc_write(buffer, tx_count);
+//				tud_cdc_write_flush();
+//			}
 
 //right now serial tx will be very lossy, just trying out usb write rather than character at a time
-//			uart_putc(uart_default, b);
-			//right now this could be lossy on uart, assume we are doing i/o on usb com port
-			//just for test, could have a tx_uart_queue and a usb_tx_queue
-			if (uart_is_writable(uart_default) && tx_character!=-1)
-				uart_putc(uart_default, tx_character);
+//			if (uart_is_writable(uart_default) && tx_character!=-1)
+//				uart_putc(uart_default, tx_character);
 
 #ifdef USE_SERIAL_ONLY
 	}
