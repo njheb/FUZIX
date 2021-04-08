@@ -142,38 +142,17 @@ void device_init(void)
     irqrestore(f);
 #endif
 
-//    sleep_ms(1000);
-    sleep_ms(5000);
-    /*irqflags_t*/ f = di();
-#if 0
+//    sleep_ms(1000); //leads to missing output <<nnnn ">>"makes it
+//    sleep_ms(5000); //all output
 
-    while (uart_is_readable(uart_default))
-    {
-       uint8_t b= uart_get_hw(uart_default)->dr;
-    }
-#endif
+    int holdoff_left=shim_extra(10000); //wait for usb to connect in ms
+    /*irqflags_t*/ f = di();
     usbconsole_putc_blocking(']');
     irqrestore(f);
-
-/*
-    kprintf("(");
-    usbconsole_putc_blocking('{');
-//    timer_tick_cb(0); //spurious char here, without draining uart
-       // timer_tick_cb_body(0); //improvising
-    usbconsole_putc_blocking('}');
-    kprintf(")");
-*/
-    int holdoff_left=shim_extra(10000); //wait for usb to connect in ms
-//but spurious char shows in the next line and 1st date input is invalid
-    kprintf("\n<<%d>>\n",holdoff_left);
-#if 0
-    /*irqflags_t*/ f = di();
-    while (uart_is_readable(uart_default))
-    {
-       uint8_t b= uart_get_hw(uart_default)->dr;
-    }
-    irqrestore(f);
-#endif
+    sleep_ms(10); //ok, need grace time for tinyusb 
+   //sleep_ms(5); //not ok
+    if (holdoff_left!=-1)
+    	kprintf("\n<<%dms>>\n",10000-holdoff_left);
     holdoff_left=shim_extra(1); //another go at draining the usb rx buffer
 
 //njh
