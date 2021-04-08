@@ -51,39 +51,7 @@ bool validdev(uint16_t dev)
     else
         return true;
 }
-/*
-static absolute_time_t next;
 
-static void timer_tick_cb_body(unsigned alarm)
-{
-//    absolute_time_t next;
-    update_us_since_boot(&next, to_us_since_boot(now) + (1000000 / TICKSPERSEC));
-    if (hardware_alarm_set_target(0, next)) 
-    {
-        update_us_since_boot(&next, time_us_64() + (1000000 / TICKSPERSEC));
-        hardware_alarm_set_target(0, next);
-    }
-    tud_task();
-    cdc_task();
-    timer_interrupt();
-}
-
-//queue_t rx_queue;
-//queue_t tx_queue;
-//these are now in queue_shim.c
-
-static void timer_tick_cb(unsigned alarm)
-{
-    static int rx_character;
-    timer_tick_cb_body(alarm);
-    rx_character = shim_pop_rx_queue();
-    if (rx_character!=-1)
-    {
-	uint8_t c=rx_character;
-        tty_inproc(minor(BOOT_TTY), c);
-    }
-}
-*/
 struct repeating_timer timer;
 
 bool timer_tick_cb(struct repeating_timer *t)
@@ -119,46 +87,32 @@ void device_init(void)
 	sd_rawinit();
 
 	devsd_init();
-/*
-    hardware_alarm_claim(0);
-    update_us_since_boot(&now, time_us_64());
-
-    hardware_alarm_set_callback(0, timer_tick_cb); 
-*/
 //    add_repeating_timer_ms(-(1000/TICKSPERSEC), timer_tick_cb, NULL, &timer);
     add_repeating_timer_ms((1000/TICKSPERSEC), timer_tick_cb, NULL, &timer);
-//    	while (usbconsole_is_readable())
-//    	{
-//       	uint8_t c = usbconsole_getc_blocking();
-//	}
+
 #if 1
-    irqflags_t f = di();
+//eat up a stray character on uart, should find cause
+//current debug is to show '!' between [] if stray usb rx char comes in
+//see the now very badly named core1.c
     usbconsole_putc_blocking('[');
 
     while (uart_is_readable(uart_default))
     {
        uint8_t b= uart_get_hw(uart_default)->dr;
     }
-    irqrestore(f);
 #endif
 
-//    sleep_ms(1000); //leads to missing output <<nnnn ">>"makes it
-//    sleep_ms(5000); //all output
-
     int holdoff_left=shim_extra(10000); //wait for usb to connect in ms
-    /*irqflags_t*/ f = di();
+
     usbconsole_putc_blocking(']');
-    irqrestore(f);
-    sleep_ms(10); //ok, need grace time for tinyusb 
-   //sleep_ms(5); //not ok
+
+    sleep_ms(10); //5ms not enough, 10ms ok, need grace time for tinyusb 
+                  //or there will be a loss of characters
     if (holdoff_left!=-1)
     	kprintf("\n<<%dms>>\n",10000-holdoff_left);
+
     holdoff_left=shim_extra(1); //another go at draining the usb rx buffer
 
-//njh
-//njh have to move this forward  (void)video_main();
-//njh hope the problem with flash_dev_init starting after has been fixed
-//njh by the di() ei() wrapping in there now
 }
 
 /* vim: sw=4 ts=4 et: */
