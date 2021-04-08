@@ -131,6 +131,8 @@ void cdc_task(void)
 //				|| uart_is_readable(uart_default)))
 //		if (multicore_fifo_wready() && uart_is_readable(uart_default))
 		//rx_character=-1;
+		static int counter=0;
+
 		if (
 			!queue_is_full(&rx_queue) && 
 			(uart_is_readable(uart_default) || 
@@ -150,7 +152,15 @@ void cdc_task(void)
 				{
 				//	multicore_fifo_push_blocking(b);
 			//		rx_character=b;
-					queue_add_blocking(&rx_queue,&b);
+				//	queue_add_blocking(&rx_queue,&b);
+					if (counter<5)
+					{
+						usbconsole_putc_blocking('!');
+					}
+					else
+					{
+						queue_add_blocking(&rx_queue,&b);
+					}
 				}
 			}
 
@@ -167,13 +177,20 @@ void cdc_task(void)
 		}
 
 			int tx_character=-1;
-
 			if (tud_cdc_connected() && tud_cdc_write_available() && !queue_is_empty(&tx_queue))
 			{
 //				tud_cdc_write(&b, 1);
 				uint8_t b;
 				queue_remove_blocking(&tx_queue, &b);
 				tx_character=b;
+				if (counter<5)
+				{/*see debugging usb startup in main.c*/
+				    counter++;
+				    usbconsole_putc_blocking('{');
+				    usbconsole_putc_blocking(b);
+				    usbconsole_putc_blocking('}');
+
+				}
 				tud_cdc_write_char(tx_character);
 				tud_cdc_write_flush();
 			}

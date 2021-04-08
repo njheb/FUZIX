@@ -54,9 +54,16 @@ int main(void)
     (void)video_main();
     sleep_ms(1000);//could be shorter than 1000ms, 750ms too short
 //    kprintf("Try USB\n"); //should be able to detect if host is there or not
+    //di(); //di here does not help
 //    kprintf("USB Try\n"); //the first character is showing up as a spurious character when usb connects
 //    sleep_ms(1500);      //right now just dumb wait so that 2nd and subsequent
 			//minicom sessions will capture output
+
+    shim_push_tx_queue_blocking('0'); //feed debugging usb startup with 5 chars
+    shim_push_tx_queue_blocking('1'); //mostly a spurious char comes in
+    shim_push_tx_queue_blocking('2'); //but it happens to be whatever is at the head of the tx_queue
+    shim_push_tx_queue_blocking('3'); //there is a clamped counter to limit filtering to startup
+    shim_push_tx_queue_blocking('4'); //otherwise there would be a problem when the counter wrapped
 /*
     char buffer[]="Hello!";
     for (int i=0; i<sizeof(buffer); )

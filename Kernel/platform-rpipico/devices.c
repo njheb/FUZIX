@@ -91,6 +91,7 @@ bool timer_tick_cb(struct repeating_timer *t)
     int rx_character;
 
     tud_task();
+//    irqflags_t f = di();
     cdc_task();
 
     rx_character = shim_pop_rx_queue();
@@ -99,6 +100,7 @@ bool timer_tick_cb(struct repeating_timer *t)
 	uint8_t c=rx_character;
         tty_inproc(minor(BOOT_TTY), c);
     }
+//    irqrestore(f);
 
     timer_interrupt();
 
