@@ -177,7 +177,9 @@ void cdc_task(void)
 		}
 
 			int tx_character=-1;
-			if (tud_cdc_connected() && tud_cdc_write_available() && !queue_is_empty(&tx_queue))
+			int tx_count=0;
+			uint8_t buffer[16];
+			while (tud_cdc_connected() && tud_cdc_write_available() && !queue_is_empty(&tx_queue) && tx_count<sizeof(buffer))
 			{
 //				tud_cdc_write(&b, 1);
 				uint8_t b;
@@ -191,11 +193,18 @@ void cdc_task(void)
 				    usbconsole_putc_blocking('}');
 
 				}
-				tud_cdc_write_char(tx_character);
+				buffer[tx_count++]=b;
+				//tud_cdc_write_char(tx_character);
+				//tud_cdc_write_flush();
+
+			}
+			if (tx_count!=0)
+			{
+				tud_cdc_write(buffer, tx_count);
 				tud_cdc_write_flush();
 			}
 
-
+//right now serial tx will be very lossy, just trying out usb write rather than character at a time
 //			uart_putc(uart_default, b);
 			//right now this could be lossy on uart, assume we are doing i/o on usb com port
 			//just for test, could have a tx_uart_queue and a usb_tx_queue

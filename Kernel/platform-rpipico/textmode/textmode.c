@@ -166,6 +166,13 @@ extern bool scanvideo_in_vblank();
 	cdc_drain();
 	cdc_drain();
 	cdc_drain();
+	cdc_drain();
+	cdc_drain();
+	cdc_drain();
+	cdc_drain();
+	cdc_drain();
+	cdc_drain();
+	cdc_drain();
 
 #endif
 	}
