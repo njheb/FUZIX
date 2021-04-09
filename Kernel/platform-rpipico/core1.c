@@ -14,6 +14,7 @@
 #include "core1.h"
 #include "pico/util/queue.h"
 
+#if 0
 bool usbconsole_is_readable(void)
 {
 	return multicore_fifo_rvalid();
@@ -33,26 +34,26 @@ void usbconsole_putc_blocking(uint8_t b)
 {
 	multicore_fifo_push_blocking(b);
 }
-
+#endif
 
 extern queue_t rx_queue;
 extern queue_t tx_queue;
+extern queue_t vga_tx_queue;
 
 int ypos = 0; //available to textmode.c for scrolling
 static const int xmax=79;
-//14 ''''''''t (c) 2014-2020 Alan Cox...etc
+
 void cdc_drain(void)
 {
 static int xpos = 0;
 
-
-
-//		if  (multicore_fifo_rvalid() && uart_is_writable(uart_default)) 
-		if  (multicore_fifo_rvalid() ) 
+//		if  (multicore_fifo_rvalid() ) 
+		while  (!queue_is_empty(&vga_tx_queue) ) 
 		{
-			int b = multicore_fifo_pop_blocking();
+//			int b = multicore_fifo_pop_blocking();
 			uint8_t c;
-			c=(uint8_t)b;
+
+			queue_remove_blocking(&vga_tx_queue, &c);
 
 
 			if (!(c=='\r' || c=='\n' || c==8))

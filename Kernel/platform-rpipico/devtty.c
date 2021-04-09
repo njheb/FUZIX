@@ -25,8 +25,11 @@ tcflag_t termios_mask[NUM_DEV_TTY+1] = { 0, _CSYS };
 void kputchar(uint_fast8_t c)
 {
     if (c == '\n')
-        usbconsole_putc_blocking('\r');
-    usbconsole_putc_blocking(c);
+//        usbconsole_putc_blocking('\r');
+//    usbconsole_putc_blocking(c);
+	shim_push_vga_queue_blocking('\r');
+    shim_push_vga_queue_blocking(c);
+
     if (c == '\n')
     	shim_push_tx_queue_blocking('\r');
 
@@ -40,7 +43,8 @@ void tty_putc(uint_fast8_t minor, uint_fast8_t c)
 
 ttyready_t tty_writeready(uint_fast8_t minor)
 {
-    return usbconsole_is_writable() ? TTY_READY_NOW : TTY_READY_SOON;
+//    return usbconsole_is_writable() ? TTY_READY_NOW : TTY_READY_SOON;
+    return !shim_vga_queue_is_full() ? TTY_READY_NOW : TTY_READY_SOON;
 }
 
 /* For the moment */

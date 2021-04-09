@@ -92,7 +92,8 @@ void device_init(void)
 //eat up a stray character on uart, should find cause
 //current debug is to show '!' between [] if stray usb rx char comes in
 //see the now very badly named core1.c
-    usbconsole_putc_blocking('[');
+//    usbconsole_putc_blocking('[');
+    kprintf("[");
 
     while (uart_is_readable(uart_default))
     {
@@ -102,7 +103,9 @@ void device_init(void)
 
     int holdoff_left=shim_extra(10000); //wait for usb to connect in ms
 
-    usbconsole_putc_blocking(']');
+//    usbconsole_putc_blocking(']');
+    kprintf("]");
+
 
     sleep_ms(10); //5ms not enough, 10ms ok, need grace time for tinyusb 
                   //or there will be a loss of characters

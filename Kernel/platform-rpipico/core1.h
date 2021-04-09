@@ -3,11 +3,12 @@
 #include "config.h"
 extern void cdc_task(void);
 extern void cdc_drain(void);
+#if 0
 extern bool usbconsole_is_readable(void);
 extern bool usbconsole_is_writable(void);
 extern uint8_t usbconsole_getc_blocking(void);
 extern void usbconsole_putc_blocking(uint8_t b);
-
+#endif
 extern int ypos;
 extern char message_text[26][81]; //exploring bug
 /*
