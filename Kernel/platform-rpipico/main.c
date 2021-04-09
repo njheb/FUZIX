@@ -46,37 +46,10 @@ void syscall_handler(struct svc_frame* eh)
 
 int main(void)
 {
-#ifdef USE_SERIAL_ONLY
-   tty_rawinit(); 
-#else
+    tty_rawinit(); 
     shim_init_queues();
-    init_for_main(); //set up uart1, graft in code from core1 uart init
     (void)video_main();
-    sleep_ms(1000);//could be shorter than 1000ms, 750ms too short
-//    kprintf("Try USB\n"); //should be able to detect if host is there or not
-    //di(); //di here does not help
-//    kprintf("USB Try\n"); //the first character is showing up as a spurious character when usb connects
-//    sleep_ms(1500);      //right now just dumb wait so that 2nd and subsequent
-			//minicom sessions will capture output
-/*
-    shim_push_tx_queue_blocking('0'); //feed debugging usb startup with 5 chars
-    shim_push_tx_queue_blocking('1'); //mostly a spurious char comes in
-    shim_push_tx_queue_blocking('2'); //but it happens to be whatever is at the head of the tx_queue
-    shim_push_tx_queue_blocking('3'); //there is a clamped counter to limit filtering to startup
-    shim_push_tx_queue_blocking('4'); //otherwise there would be a problem when the counter wrapped
-*/
-/*
-    char buffer[]="Hello!";
-    for (int i=0; i<sizeof(buffer); )
-    {
-	if (usbconsole_is_writable())
-		usbconsole_putc_blocking(buffer[i++]);
-	//this makes it to the uart
-	//but not to the vga text_buffer or usb comport
-    }
-*/
-//   core1_init();
-#endif
+    sleep_ms(1000);//could be shorter than 1000ms, 750ms too short, is this needed now
 
 	if ((U_DATA__U_SP_OFFSET != offsetof(struct u_data, u_sp)) ||
 		(U_DATA__U_PTAB_OFFSET != offsetof(struct u_data, u_ptab)) ||

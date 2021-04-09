@@ -6,9 +6,7 @@
 extern void flash_dev_init(void);
 extern void sd_rawinit(void);
 
-#ifdef USE_SERIAL_ONLY
-extern void tty_rawinit(void);
-#endif
+extern void tty_rawinit(void); //njh reuse
 
 extern void contextswitch(ptptr p);
 

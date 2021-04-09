@@ -46,10 +46,8 @@ target_sources(fuzix PRIVATE
 	rawflash.c
 	swapper.c
 	tricks.S
-#ifndef USE_SERIAL_ONLY 
 	core1.c
 	usbdescriptors.c
-#endif
 	../dev/blkdev.c
 	../dev/mbr.c
 	../dev/devsd_discard.c

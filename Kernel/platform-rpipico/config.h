@@ -30,8 +30,6 @@
 /* Serial TTY, no VT or font */
 #undef CONFIG_VT
 #undef CONFIG_FONT8X8
-//#define USE_SERIAL_ONLY  //njh uart1 only no usb comport yet
-#undef USE_SERIAL_ONLY //njh test for usb with vga
 /* Program layout */
 
 #define UDATA_BLKS  3

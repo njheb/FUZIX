@@ -155,7 +155,6 @@ extern bool scanvideo_in_vblank();
 
 	if (scanvideo_in_vblank() == true)
 	{
-//        tud_task();
         cdc_drain(); //this is now is named as we are running without usb
 #define CRUDE_SPEEDUP
 #ifdef CRUDE_SPEEDUP
@@ -650,7 +649,7 @@ skip2:
 void go_core1(void (*execute)()) {
     multicore_launch_core1(execute);
 }
-
+#if 0
 void init_for_main(void)
 {
 //    setup_default_uart();
@@ -684,7 +683,6 @@ void demo_for_main(void)
     __builtin_unreachable();
 }
 
-#if 0
 int main(void) {
 #ifdef INSTRUMENTATION
 #if PICO_SCANVIDEO_48MHZ

@@ -14,10 +14,8 @@
 #include "picosdk.h"
 #include <hardware/irq.h>
 #include <hardware/structs/timer.h>
-#ifndef USE_SERIAL_ONLY
 #include <pico/multicore.h>
 #include "core1.h"
-#endif
 extern void tusb_init(void);
 extern void tud_task(void);
 
