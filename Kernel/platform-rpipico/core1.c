@@ -96,7 +96,6 @@ static int xpos = 0;
 void cdc_task(void)
 {
 
-		static int counter=0; //for debug, probably not needed anymore, but leave in for now
 
 		if (
 			!queue_is_full(&rx_queue) && 
@@ -115,14 +114,7 @@ void cdc_task(void)
 				int count = tud_cdc_read(&b, 1);
 				if (count==1)
 				{
-					if (counter<5) /*part of debug leave in for now*/
-					{
-						usbconsole_putc_blocking('!');
-					}
-					else
-					{
-						queue_add_blocking(&rx_queue,&b);
-					}
+					queue_add_blocking(&rx_queue,&b);
 				}
 			}
 
@@ -151,14 +143,6 @@ void cdc_task(void)
 
 			if (tud_cdc_connected() && tud_cdc_write_available() && tx_count)
 			{
-				if (counter<5)
-				{/*see debugging usb startup in main.c*/
-				    counter+=tx_count;
-				    //usbconsole_putc_blocking('{');
-				    //usbconsole_putc_blocking(b);
-				    //usbconsole_putc_blocking('}');
-
-				}
 				tud_cdc_write(buffer, tx_count);
 				tud_cdc_write_flush();
 
