@@ -34,34 +34,6 @@ void usbconsole_putc_blocking(uint8_t b)
 	multicore_fifo_push_blocking(b);
 }
 
-//overloading the use of USE_SERIAL_ONLY for the moment
-//only interested in the effect of #undef USE_SERIAL_ONLY
-#ifdef USE_SERIAL_ONLY
-static void core1_main(void)
-{
-    uart_init(uart_default, PICO_DEFAULT_UART_BAUD_RATE);
-    gpio_set_function(PICO_DEFAULT_UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(PICO_DEFAULT_UART_RX_PIN, GPIO_FUNC_UART);
-    uart_set_translate_crlf(uart_default, false);
-    uart_set_fifo_enabled(uart_default, true);
-
-    tusb_init();
-
-	for (;;)
-	{
-		tud_task();
-
-#else
-/*
- don't forget 
-
-    tusb_init();
-		tud_task();
-
-NB board_init(); not needed
-check if crlf translate already setup or needed?
-*/
-
 
 extern queue_t rx_queue;
 extern queue_t tx_queue;
@@ -123,15 +95,8 @@ static int xpos = 0;
 
 void cdc_task(void)
 {
-#endif //USE_SERIAL_ONLY
-			
 
-//		if (multicore_fifo_wready()
-//			&& ((tud_cdc_connected() && tud_cdc_available())
-//				|| uart_is_readable(uart_default)))
-//		if (multicore_fifo_wready() && uart_is_readable(uart_default))
-		//rx_character=-1;
-		static int counter=0;
+		static int counter=0; //for debug, probably not needed anymore, but leave in for now
 
 		if (
 			!queue_is_full(&rx_queue) && 
@@ -140,20 +105,17 @@ void cdc_task(void)
 			)  
 		   )
 		{
-			/* Only service a byte from CDC *or* the UART, in case two show
-			 * up at the same time and we end up blocking. No big loss, the
-			 * next one will be read the next time around the loop. */
-//			if (tud_cdc_available())
+/*
+ * Need to look at moving usb com into a separate device
+ *
+ */
 			if (tud_cdc_connected() && tud_cdc_available())
 			{
 				uint8_t b;
 				int count = tud_cdc_read(&b, 1);
 				if (count==1)
 				{
-				//	multicore_fifo_push_blocking(b);
-			//		rx_character=b;
-				//	queue_add_blocking(&rx_queue,&b);
-					if (counter<5)
+					if (counter<5) /*part of debug leave in for now*/
 					{
 						usbconsole_putc_blocking('!');
 					}
@@ -165,22 +127,19 @@ void cdc_task(void)
 			}
 
 
-//			if (uart_is_readable(uart_default) && multicore_fifo_wready())
 			if (uart_is_readable(uart_default) && !queue_is_full(&rx_queue))
 			{
 				uint8_t b = uart_get_hw(uart_default)->dr;
-				//multicore_fifo_push_blocking(b);
 				queue_add_blocking(&rx_queue,&b);
-
 			}
 
 		}
 
-//right now serial tx will be very lossy, just trying out usb write rather than character at a time
 			int tx_count=0;
 			uint8_t buffer[32];
+			int tx_limit = tud_cdc_connected() ? MIN(sizeof(buffer), tud_cdc_write_available()) : sizeof(buffer);
 
-			while (uart_is_writable(uart_default) && tx_count<sizeof(buffer) && !queue_is_empty(&tx_queue))
+			while (uart_is_writable(uart_default) && tx_count<tx_limit && !queue_is_empty(&tx_queue))
 			{
 				uint8_t b;
 				queue_remove_blocking(&tx_queue, &b);
@@ -190,16 +149,8 @@ void cdc_task(void)
 			}
 
 
-//			int tx_character=-1;
-//			int tx_count=0;
-//			uint8_t buffer[16];
-//			while (tud_cdc_connected() && tud_cdc_write_available() && !queue_is_empty(&tx_queue) && tx_count<sizeof(buffer))
 			if (tud_cdc_connected() && tud_cdc_write_available() && tx_count)
 			{
-//				tud_cdc_write(&b, 1);
-//				uint8_t b;
-//				queue_remove_blocking(&tx_queue, &b);
-//				tx_character=b;
 				if (counter<5)
 				{/*see debugging usb startup in main.c*/
 				    counter+=tx_count;
@@ -208,34 +159,11 @@ void cdc_task(void)
 				    //usbconsole_putc_blocking('}');
 
 				}
-				//buffer[tx_count++]=b;
-				//tud_cdc_write_char(tx_character);
 				tud_cdc_write(buffer, tx_count);
 				tud_cdc_write_flush();
-				//tud_cdc_write_flush();
 
 			}
-//			if (tx_count!=0)
-//			{
-//				tud_cdc_write(buffer, tx_count);
-//				tud_cdc_write_flush();
-//			}
 
-//right now serial tx will be very lossy, just trying out usb write rather than character at a time
-//			if (uart_is_writable(uart_default) && tx_character!=-1)
-//				uart_putc(uart_default, tx_character);
+}
 
-#ifdef USE_SERIAL_ONLY
-	}
-}
-#else
-}
-#endif // USE_SERIAL_ONLY
-
-#ifdef USE_SERIAL_ONLY
-void core1_init(void)
-{
-	multicore_launch_core1(core1_main);
-}
-#endif
 
