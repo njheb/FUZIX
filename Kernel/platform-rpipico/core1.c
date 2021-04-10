@@ -8,33 +8,12 @@
 #include <pico/stdlib.h>
 #include <pico/time.h>
 #include <pico/binary_info.h>
-#include <pico/multicore.h>
+//#include <pico/multicore.h>
 #include <hardware/uart.h>
 #include <hardware/irq.h>
 #include "core1.h"
 #include "pico/util/queue.h"
 
-#if 0
-bool usbconsole_is_readable(void)
-{
-	return multicore_fifo_rvalid();
-}
-
-bool usbconsole_is_writable(void)
-{
-	return multicore_fifo_wready();
-}
-
-uint8_t usbconsole_getc_blocking(void)
-{
-	return multicore_fifo_pop_blocking();
-}
-
-void usbconsole_putc_blocking(uint8_t b)
-{
-	multicore_fifo_push_blocking(b);
-}
-#endif
 
 extern queue_t rx_queue;
 extern queue_t tx_queue;
@@ -43,14 +22,12 @@ extern queue_t vga_tx_queue;
 int ypos = 0; //available to textmode.c for scrolling
 static const int xmax=79;
 
-void cdc_drain(void)
+void vga_drain(void)
 {
 static int xpos = 0;
 
-//		if  (multicore_fifo_rvalid() ) 
 		while  (!queue_is_empty(&vga_tx_queue) ) 
 		{
-//			int b = multicore_fifo_pop_blocking();
 			uint8_t c;
 
 			queue_remove_blocking(&vga_tx_queue, &c);
@@ -67,7 +44,7 @@ static int xpos = 0;
 			else if (c == '\n')
 			{ 
 			    ypos++;
-			    if (ypos > 25) ypos=0;
+			    if (ypos >= 25) ypos=0;
 
 			    for (int i=0;i<xmax;i++)
 				message_text[ypos][i]='\0';
@@ -87,7 +64,7 @@ static int xpos = 0;
 			{
 			  xpos = 0;
 			  ypos++;
-			  if (ypos>25) ypos = 0;
+			  if (ypos>=25) ypos = 0;
 			}
 
 		}

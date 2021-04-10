@@ -44,8 +44,8 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core);
 
 int video_main(void);
 /*scaled for middle sized font*/
+//char message_text[25][81] = {
 char message_text[26][81] = {
-"",
 "",
 "",
 "",
@@ -150,32 +150,13 @@ void render_loop() {
         // todo probably a race condition here ... thread dealing with last line of a frame may end
         // todo up waiting on the next frame...
 
-#ifndef USE_SERIAL_ONLY
 extern bool scanvideo_in_vblank();
 
 	if (scanvideo_in_vblank() == true)
 	{
-        cdc_drain(); //this is now is named as we are running without usb
-#define CRUDE_SPEEDUP
-#ifdef CRUDE_SPEEDUP
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-	cdc_drain();
-
-#endif
+        vga_drain();
 	}
-#endif //USE_SERIAL_ONLY
+
         mutex_enter_blocking(&frame_logic_mutex);
         uint32_t frame_num = scanvideo_frame_number(scanline_buffer->scanline_id);
         // note that with multiple cores we may have got here not for the first scanline, however one of the cores will do this logic first before either does the actual generation
