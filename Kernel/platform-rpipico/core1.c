@@ -35,7 +35,17 @@ static int xpos = 0;
 
 			if (!(c=='\r' || c=='\n' || c==8))
 			{
-			    message_text[ypos][xpos]=c;
+			    	message_text[ypos%25][xpos]=c;
+
+			   	if (!((ypos>=0) && (ypos<=24)))
+				{
+			   	  //this should not need checking, but looking for cause of erratic behaviour
+				// not managed to trigger problem so far with ypos%25 used as index
+				const uint LED_PIN = 25;
+    				gpio_init(LED_PIN);
+    				gpio_set_dir(LED_PIN, GPIO_OUT);
+				gpio_put(LED_PIN, 1);
+				}
 			}
 			if (c == '\r') 
 			{
