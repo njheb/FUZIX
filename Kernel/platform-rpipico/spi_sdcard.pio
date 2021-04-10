@@ -52,6 +52,10 @@ static inline void pio_spi_init(PIO pio, uint sm, uint prog_offs,
     pio_gpio_init(pio, pin_miso);
     pio_gpio_init(pio, pin_sck);
 
+    gpio_pull_up(pin_mosi);
+    gpio_pull_up(pin_miso);
+    gpio_pull_down(pin_sck);
+
     // The pin muxes can be configured to invert the output (among other things
     // and this is a cheesy way to get CPOL=1, but here we are using CPOL=0
     gpio_set_outover(pin_sck, GPIO_OVERRIDE_NORMAL);  //CPOL=0
