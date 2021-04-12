@@ -44,7 +44,6 @@ bool render_scanline_bg(struct scanvideo_scanline_buffer *dest, int core);
 
 int video_main(void);
 /*scaled for middle sized font*/
-//char message_text[25][81] = {
 char message_text[25][81] = {
 "",
 "",
@@ -67,13 +66,10 @@ char message_text[25][81] = {
 "",
 "",
 "USB on core0",
-"see bug note just under declaration of text_message",
+"this is not a proper vt yet",
 "#1234567890123456789012345678901234567890123456789012345678901234567890123456789",
 "00000000001111111111222222222233333333334444444444555555555566666666667777777777",
 ""
-//if extern text_message[25][81]; as it should be rather than [26][81] 
-//then FUZIX has erratic behaviour, fixed the hang that was commented
-//on in earlier versions of this file
 };
 
 #define vga_mode vga_mode_640x480_60
