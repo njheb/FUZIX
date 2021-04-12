@@ -63,7 +63,7 @@ static int xpos = 0;
 			else if (c==8)
 			{
 			    xpos--;
-			    if (xpos==2) xpos=3;
+			    if (xpos==1) xpos=2;
 
 			    message_text[ypos][xpos]='\0';
 			} 
