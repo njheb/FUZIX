@@ -88,29 +88,23 @@ void device_init(void)
 //    add_repeating_timer_ms(-(1000/TICKSPERSEC), timer_tick_cb, NULL, &timer);
     add_repeating_timer_ms((1000/TICKSPERSEC), timer_tick_cb, NULL, &timer);
 
-#if 1
+    kprintf("Start USB terminal if you want one ");
 //eat up a stray character on uart, should find cause
-//current debug is to show '!' between [] if stray usb rx char comes in
-//see the now very badly named core1.c
-//    usbconsole_putc_blocking('[');
-    kprintf("[");
-
     while (uart_is_readable(uart_default))
     {
        uint8_t b= uart_get_hw(uart_default)->dr;
     }
-#endif
 
-    int holdoff_left=shim_extra(10000); //wait for usb to connect in ms
+#define HOLDOFF_TIME_MS 3000
+    int holdoff_left=shim_extra(HOLDOFF_TIME_MS); //wait for usb to connect in ms
 
-//    usbconsole_putc_blocking(']');
-    kprintf("]");
-
-
-    sleep_ms(10); //5ms not enough, 10ms ok, need grace time for tinyusb 
+    sleep_ms(100); //5ms not enough, 10ms seems ok, need grace time for tinyusb 
                   //or there will be a loss of characters
     if (holdoff_left!=-1)
-    	kprintf("\n<<%dms>>\n",10000-holdoff_left);
+    	kprintf("<<%dms>>\n",HOLDOFF_TIME_MS-holdoff_left);
+    else
+    	kprintf("\n");
+
 
     holdoff_left=shim_extra(1); //another go at draining the usb rx buffer
 
